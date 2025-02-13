@@ -1,0 +1,254 @@
+syntax = "proto3";
+package user_package;
+
+service User {
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc CheckUser(CheckUserRequest) returns (CheckUserResponse) {}
+    rpc ResendOtp(ResendOtpRequest) returns (ResendOtpResponse) {}
+    rpc CheckGoogleLoginUser(CheckGoogleLoginUserRequest) returns (CheckGoogleLoginUserResponse) {}
+    rpc CheckLoginUser(CheckLoginUserRequest) returns (CheckLoginUserResponse) {}
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+    rpc ProfileUpdate(ProfileUpdateRequest) returns (ProfileUpdateResponse) {}
+    rpc addWalletBalance(addWalletBalanceRequest) returns (addWalletBalanceResponse) {}
+    rpc rideCancelUpdate(rideCancelUpdateRequest) returns (rideCancelUpdateResponse) {}
+    rpc RidePayment(RidePaymentRequest) returns (RidePaymentResponse) {}
+    rpc razorpayPayment(razorpayPaymentRequest) returns (razorpayPaymentResponse) {}
+    rpc AdminLogin(AdminLoginRequest) returns (AdminLoginResponse) {}
+    rpc AdminGetData(Empty) returns (AdminGetDataResponse) {}
+    rpc AdminGetUserData(AdminGetUserDataRequest) returns (AdminGetUserDataResponse) {}
+    rpc AdminGetBlockedData(Empty) returns (AdminGetBlockedDataResponse) {}
+    rpc AdminUpdateUserStatus(AdminUpdateUserStatusRequest) returns (AdminUpdateUserStatusResponse) {}
+    rpc AdminDashboardData(AdminDashboardDataRequest) returns (AdminDashboardDataResponse) {}
+}
+
+message RegisterRequest {
+    string name = 1;
+    string email = 2;
+    string mobile = 3;
+    string password = 4;
+    string referred_Code = 5;
+    string otp = 6;
+    string token =7;
+    string userImage = 8;
+}
+message RegisterResponse {
+    string message = 1;
+}
+
+
+message CheckUserRequest {
+    string email = 1;
+    string mobile = 2;
+}
+
+message CheckUserResponse {
+    string message = 1;
+    string token = 2;
+
+}
+
+
+message ResendOtpResponse {
+    string message = 1;
+    string token = 2;
+}
+
+message ResendOtpRequest {
+    string email = 1;
+    string name = 2;
+}
+
+
+
+
+message CheckGoogleLoginUserRequest {
+    string email = 1;
+}
+
+message CheckGoogleLoginUserResponse {
+    string message = 1;
+    string name = 2;
+    string token = 3;
+    string refreshToken = 5;
+    string _id = 4;
+}
+
+
+message CheckLoginUserRequest {
+    int64 mobile = 1;
+}
+
+message CheckLoginUserResponse {
+    string message = 1;
+    string name = 2;
+    string token = 3;
+    string refreshToken = 5;
+    string _id = 4;
+}
+
+
+message GetUserRequest {
+    string id = 1;
+}
+
+message GetUserResponse{
+    userDatas newData= 1;
+}
+message ProfileUpdateRequest {
+    string id = 1;
+    string name = 2;
+    string mobile = 3;
+    string email = 4;
+}
+
+message ProfileUpdateResponse{
+    string message = 1;
+    userDatas newData = 2;
+}
+message addWalletBalanceRequest {
+    string id = 1;
+    string balance = 2;
+}
+
+message addWalletBalanceResponse{
+    string message = 1;
+}
+message rideCancelUpdateRequest {
+    string userId = 1;
+}
+
+message rideCancelUpdateResponse{
+    string message = 1;
+}
+message RidePaymentRequest {
+    string paymentMode = 1;
+    string userId = 2;
+    string rideId = 3;
+    int32 amount = 4;
+    string razorpayOrderId = 5;
+    string razorpayPaymentId = 6;
+    string razorpaySignature = 7;
+}
+
+message RidePaymentResponse{
+    string message = 1;
+    int32 StatusCode=2;
+}
+message razorpayPaymentRequest {
+    int32 amount = 1;
+}
+
+message razorpayPaymentResponse{
+    int32 amount = 1;
+    int32 amount_due = 2;
+    int32 amount_paid = 3;
+    int32 attempts = 4;
+    int64 created_at = 5; 
+    string currency = 6;
+    string entity = 7;
+    string id = 8;
+    repeated string notes = 9;
+    string offer_id = 10;
+    string receipt = 11;
+    string status = 12;
+}
+message Transaction {
+    string details = 1;
+    int32 amount = 2;
+    string status = 3;
+    string _id = 4;
+    string formattedDate = 5;
+}
+
+message Wallet {
+    int32 balance = 1;
+    repeated Transaction transactions = 2;
+}
+
+message RideDetails {
+    int32 completedRides = 1;
+    int32 cancelledRides = 2;
+}
+
+message userDatas {
+    string name = 1;
+    string mobile = 2;
+    string email = 3;
+    string account_status = 4;
+    string referral_code = 5;
+    string formattedDate = 6;
+    string userImage = 7;
+    Wallet wallet = 8;
+    RideDetails rideDetails = 9;
+    repeated Transaction formattedTransactions = 10;
+}
+
+
+message AdminLoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message AdminLoginResponse{
+    string message = 1;
+    string email =2;
+    string token =3;
+}
+message Empty {
+
+}
+
+message AdminGetDataResponse {
+    repeated user User=1;
+}
+
+message user {
+    string _id = 7;
+    string name = 1;
+    string email = 2;
+    string mobile = 3;
+    string userImage = 4;
+    string referral_code = 5;
+    string account_status = 6;
+}
+
+message AdminGetBlockedDataResponse {
+    repeated user User = 1;
+}
+
+
+message AdminUpdateUserStatusRequest {
+   string id=1; 
+   string status=2;
+}
+message AdminUpdateUserStatusResponse {
+    string message = 1;
+}
+message AdminGetUserDataRequest{
+    string id=1;
+}
+
+message AdminGetUserDataResponse{
+   string _id = 7;
+    string name = 1;
+    string email = 2;
+    string mobile = 3;
+    string userImage = 4;
+    string referral_code = 5;
+    string account_status = 6;
+}
+message AdminDashboardDataRequest{
+    
+}
+
+message AdminDashboardDataResponse{
+    repeated UserStat stats = 1;
+    int32 totalUsers=2;
+    int32 blockedUsers=3;
+}
+
+
+message UserStat {
+    int32 userCount = 1;
+    int32 month = 2;
+}
