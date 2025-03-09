@@ -37,7 +37,7 @@ export default class userController {
         .json({ message: "Internal Server Error" });
     }
   };
-  checkUser = async (req: Request, res: Response): Promise<void> => {
+  checkUser = async (req: Request, res: Response) => {
     try {
       UserService.CheckUser(
         req.body,

@@ -9,6 +9,7 @@ import { limiter } from "./utils/rateLimitter";
 import "dotenv/config";
 
 import userRoute from "./modules/user/route";
+import driverRoute from "./modules/driver/route";
 
 class App {
   public app: Application;
@@ -39,11 +40,12 @@ class App {
     this.app.use(limiter);
   }
 
-  private routes():void{
-  this.app.use("/api/user",userRoute)
+  private routes(): void {
+    this.app.use("/api/user", userRoute);
+    this.app.use("/api/driver", driverRoute);
   }
 
-  public startServer(port: number):void {
+  public startServer(port: number): void {
     this.server.listen(port, () => {
       console.log(`API-Gateway started on ${port}`);
     });
