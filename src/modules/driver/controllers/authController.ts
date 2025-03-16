@@ -7,13 +7,15 @@ export default class driverAuthController {
 
   checkLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      console.log(req.body, "driver login");
+      console.log(req.body, "============driver login");
       const { mobile } = req.body;
       const operation = "login-check";
       const response: Message = (await driverRabbitMqClient.produce(
         { mobile },
         operation
       )) as Message;
+      console.log("REASPOSE",response);
+      
       res.status(StatusCode.Created).json(response);
     } catch (e: any) {
       console.log(e);
@@ -23,6 +25,19 @@ export default class driverAuthController {
     }
   };
 
+  checkDriver=async(req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const operation = "driver-check";
+      const response: Message = await driverRabbitMqClient.produce(req.body, operation) as Message
+      res.status(StatusCode.Created).json(response);
+    } catch (e: any) {
+      console.log(e);
+       res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
+    }
+  }
   
   checkGoogleLoginDriver = async (
     req: Request,
@@ -50,21 +65,6 @@ export default class driverAuthController {
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const operation = "driver-register";
-      const response: Message = (await driverRabbitMqClient.produce(
-        req.body,
-        operation
-      )) as Message;
-      res.status(StatusCode.Created).json(response);
-    } catch (e: any) {
-      console.log(e);
-      return res
-        .status(StatusCode.InternalServerError)
-        .json({ message: "Internal Server Error" });
-    }
-  };
-  checkDriver = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const operation = "driver-check";
       const response: Message = (await driverRabbitMqClient.produce(
         req.body,
         operation

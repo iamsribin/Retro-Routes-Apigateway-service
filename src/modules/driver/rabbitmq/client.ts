@@ -7,7 +7,10 @@ import {EventEmitter} from 'events'
 
 import Consumer from "./consumer";
 
+
 class RabbitMqClient{
+    private constructor(){}
+
     private static instance:RabbitMqClient;
     private isInitialized = false;
     private producer:Producer |undefined;
@@ -17,9 +20,11 @@ class RabbitMqClient{
     private consumerChannel: Channel |undefined;
     private eventEmitter :EventEmitter|undefined;
 
+
     public static getInstance(){
         if(!this.instance){
             this.instance=new RabbitMqClient()
+
         }
         return this.instance
     }
@@ -30,21 +35,21 @@ class RabbitMqClient{
         }
         try{
             this.connection=await connect(rabbitmqConfig.rabbitMQ.url);
-            
             const [produceChannel, consumerChannel] = await Promise.all([
                 this.connection.createChannel(),
                 this.connection.createChannel()
             ]);
-
             this.produceChannel = produceChannel;
             this.consumerChannel = consumerChannel;
             const {queue:replyQueueName} = await this.consumerChannel.assertQueue("",{exclusive:false})
             this.eventEmitter=new EventEmitter()
+
             this.producer= new Producer(
                 this.produceChannel,
                 replyQueueName,
                 this.eventEmitter
             )
+            
             this.consumer= new Consumer(this.consumerChannel,replyQueueName,this.eventEmitter)
             this.consumer?.consumeMessage()
             this.isInitialized=true

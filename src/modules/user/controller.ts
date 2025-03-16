@@ -1,24 +1,21 @@
 import { Response, Request } from "express";
 import { UserService } from "./config/user.client";
 import { StatusCode } from "../../interfaces/enum";
-import uploadToS3 from "../../services/s3";
 import { Message, AuthResponse } from "../../interfaces/interface";
 
 export default class userController {
-
   register = async (req: Request, res: Response): Promise<void> => {
-    try {      
+    try {
       const files: Express.Multer.File | undefined = req.file;
       let userImage = "";
       if (files) {
-        userImage = await uploadToS3(files);
+
       }
       const token = req.cookies.otp;
       console.log("token api gateway", token);
       console.log("...req.body", req.body);
-      
+
       UserService.Register(
-        
         { ...req.body, userImage, token },
         (err: any, result: Message) => {
           if (err) {
@@ -79,6 +76,29 @@ export default class userController {
     } catch (error) {
       console.log(error);
       res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Internal Server Error" });
+    }
+  };
+
+  checkGoogleLoginUser = (req: Request, res: Response) => {
+    try {
+      console.log("checkGoogleLoginUser",req.body);
+      UserService.CheckGoogleLoginUser(
+        req.body,
+        (err: any, result: AuthResponse) => {
+          if (err) {
+            console.log(err);
+            res.status(StatusCode.BadRequest).json({ message: err });
+          } else {
+            console.log("result ", result);
+            res.status(StatusCode.Created).json(result);
+          }
+        } 
+      );
+    } catch (error) {
+      console.log(error);
+         res
         .status(StatusCode.InternalServerError)
         .json({ message: "Internal Server Error" });
     }

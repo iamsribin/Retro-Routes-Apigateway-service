@@ -11,32 +11,43 @@ export default class Producer {
   ) {}
 
   async produceMessage(data: any, operation: any) {
-    console.log(this.replyQueueName,"replyy driver [-=-=-=-=-=-=-]");
+    try {
+      console.log(this.replyQueueName,"replyy driver [-=-=-=-=-=-=-]");
     
-    const uuid = randomUUID();
-    this.channel.sendToQueue(
-      rabbitmqConfig.queues.dirverQueue,
-      Buffer.from(JSON.stringify(data)),
-      {
-        replyTo: this.replyQueueName,
-        correlationId: uuid,
-        expiration: 10,
-        headers: {
-          function: operation,
-        },
-      }
-    );
+      const uuid = randomUUID();
 
-    return new Promise((res, rej) => {
-      this.eventEmitter.once(uuid, async (reply) => {
-        try {
-          const replyDataString = Buffer.from(reply.content).toString("utf-8");
-          const replyObject = JSON.parse(replyDataString);
-          res(replyObject);
-        } catch (error) {
-          rej(error);
+      this.channel.sendToQueue(
+        rabbitmqConfig.queues.dirverQueue,
+        Buffer.from(JSON.stringify(data)),
+        {
+          replyTo: this.replyQueueName,
+          correlationId: uuid,
+          expiration: 10000,
+          headers: {
+            function: operation,
+          },
         }
+      );
+
+     console.log("message sened quer");
+  
+      return new Promise((res, rej) => {
+        this.eventEmitter.once(uuid, async (reply) => {
+          try {
+            console.log("replaaaay",reply);
+            
+            const replyDataString = Buffer.from(reply.content).toString("utf-8");
+            const replyObject = JSON.parse(replyDataString);
+            res(replyObject);
+          } catch (error) {
+            rej(error);
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.log("error send qu",error);
+      
+    }
+  
   }
 }

@@ -6,12 +6,5 @@ const driverRoute=express.Router()
 const AuthController= new driverAuthController()
 
 driverRoute.post("/checkLoginDriver", AuthController.checkLogin);
-// driverRoute.post("/checkGoogleLoginDriver", AuthController.checkGoogleLoginDriver);
-// driverRoute.post("/registerDriver", AuthController.register);
-// driverRoute.post("/checkDriver", AuthController.checkDriver);
-// driverRoute.post("/location", AuthController.location);
-// driverRoute.post("/identification",upload.fields([{ name: "aadharImage", maxCount: 1 },{ name: "licenseImage", maxCount: 1 },]),AuthController.identificationUpdate);
-// driverRoute.post("/uploadDriverImage",upload.single("driverImage"),AuthController.updateDriverImage);
-// driverRoute.post("/vehicleDetails",upload.fields([{ name: "carImage", maxCount: 1 },{ name: "rcImage", maxCount: 1 },]),AuthController.vehicleUpdate);
- 
+driverRoute.post("/checkDriver", AuthController.checkDriver);
 export default driverRoute

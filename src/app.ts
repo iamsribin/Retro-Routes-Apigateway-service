@@ -11,7 +11,7 @@ import "dotenv/config";
 import userRoute from "./modules/user/route";
 import driverRoute from "./modules/driver/route";
 
-class App {
+class App {        
   public app: Application;
   public server: http.Server<
     typeof http.IncomingMessage,
@@ -33,6 +33,7 @@ class App {
         credentials: true,
       })
     );
+    
     this.app.use(compression());
     this.app.use(helmet());
     this.app.use(logger("dev"));
