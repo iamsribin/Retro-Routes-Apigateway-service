@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package authpackage;
+
+service Auth{
+  rpc IsAuthenticated(AuthReq) returns(AuthRes) {};
+  rpc RefreshToken(RefreshReq) returns(RefreshRes) {};
+}
+
+message RefreshReq{
+  string token = 1;
+}
+
+message RefreshRes{
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message AuthReq {
+  string token = 1;
+}
+
+message AuthRes {
+  string user_id = 1;
+  string role = 2;
+}

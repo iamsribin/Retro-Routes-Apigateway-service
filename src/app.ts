@@ -10,6 +10,7 @@ import "dotenv/config";
 
 import userRoute from "./modules/user/route";
 import driverRoute from "./modules/driver/route";
+import authRoute from "./modules/auth/route"
 
 class App {        
   public app: Application;
@@ -44,6 +45,7 @@ class App {
   private routes(): void {
     this.app.use("/api/user", userRoute);
     this.app.use("/api/driver", driverRoute);
+    this.app.use('/api/auth',authRoute);
   }
 
   public startServer(port: number): void {

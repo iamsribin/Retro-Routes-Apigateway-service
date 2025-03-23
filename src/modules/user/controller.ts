@@ -12,8 +12,6 @@ export default class userController {
 
       }
       const token = req.cookies.otp;
-      console.log("token api gateway", token);
-      console.log("...req.body", req.body);
 
       UserService.Register(
         { ...req.body, userImage, token },
@@ -22,7 +20,6 @@ export default class userController {
             console.log(err);
             res.status(StatusCode.BadRequest).json({ message: err });
           } else {
-            console.log("singup result ", result);
             res.status(StatusCode.Created).json(result);
           }
         }

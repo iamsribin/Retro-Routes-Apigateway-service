@@ -7,4 +7,6 @@ const AuthController= new driverAuthController()
 
 driverRoute.post("/checkLoginDriver", AuthController.checkLogin);
 driverRoute.post("/checkDriver", AuthController.checkDriver);
+driverRoute.post("/registerDriver", AuthController.register);
+
 export default driverRoute

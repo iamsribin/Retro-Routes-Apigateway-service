@@ -11,9 +11,7 @@ export default class Producer {
   ) {}
 
   async produceMessage(data: any, operation: any) {
-    try {
-      console.log(this.replyQueueName,"replyy driver [-=-=-=-=-=-=-]");
-    
+    try {    
       const uuid = randomUUID();
 
       this.channel.sendToQueue(
