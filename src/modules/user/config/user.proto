@@ -71,6 +71,8 @@ message CheckGoogleLoginUserResponse {
     string token = 3;
     string refreshToken = 5;
     string _id = 4;
+    bool isAdmin = 6;
+
 }
 
 
@@ -84,6 +86,8 @@ message CheckLoginUserResponse {
     string token = 3;
     string refreshToken = 5;
     string _id = 4;
+    bool isAdmin = 6;
+
 }
 
 
