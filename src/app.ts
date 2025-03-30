@@ -11,6 +11,7 @@ import "dotenv/config";
 import userRoute from "./modules/user/route";
 import driverRoute from "./modules/driver/route";
 import authRoute from "./modules/auth/route"
+import adminRoute from "./modules/admin/route"
 
 class App {        
   public app: Application;
@@ -46,6 +47,7 @@ class App {
     this.app.use("/api/user", userRoute);
     this.app.use("/api/driver", driverRoute);
     this.app.use('/api/auth',authRoute);
+    this.app.use('/api/admin',adminRoute)
   }
 
   public startServer(port: number): void {

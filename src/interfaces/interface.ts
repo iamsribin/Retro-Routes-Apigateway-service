@@ -19,3 +19,27 @@ export interface Message {
     accessToken: string;
     refreshToken: string;
   }
+
+  export interface UserInterface extends Document {
+    name: string;
+    email: string;
+    mobile: number;
+    password: string;
+    userImage: string;
+    referral_code: string;
+    account_status: string;
+    joiningDate: string;
+    wallet: {
+        balance: number;
+        transactions: {
+            date: Date;
+            details: string;
+            amount: number;
+            status: string;
+        }[];
+    };
+    RideDetails: {
+        completedRides: number;
+        cancelledRides: number;
+    };
+  }

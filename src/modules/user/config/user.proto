@@ -7,16 +7,16 @@ service User {
     rpc ResendOtp(ResendOtpRequest) returns (ResendOtpResponse) {}
     rpc CheckGoogleLoginUser(CheckGoogleLoginUserRequest) returns (CheckGoogleLoginUserResponse) {}
     rpc CheckLoginUser(CheckLoginUserRequest) returns (CheckLoginUserResponse) {}
-    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+    rpc GetActiveUser(GetUserRequest) returns (GetUserResponse) {}
     rpc ProfileUpdate(ProfileUpdateRequest) returns (ProfileUpdateResponse) {}
     rpc addWalletBalance(addWalletBalanceRequest) returns (addWalletBalanceResponse) {}
     rpc rideCancelUpdate(rideCancelUpdateRequest) returns (rideCancelUpdateResponse) {}
     rpc RidePayment(RidePaymentRequest) returns (RidePaymentResponse) {}
     rpc razorpayPayment(razorpayPaymentRequest) returns (razorpayPaymentResponse) {}
     rpc AdminLogin(AdminLoginRequest) returns (AdminLoginResponse) {}
-    rpc AdminGetData(Empty) returns (AdminGetDataResponse) {}
+    rpc AdiminGetActiveUser(Empty) returns (AdminGetDataResponse) {}
     rpc AdminGetUserData(AdminGetUserDataRequest) returns (AdminGetUserDataResponse) {}
-    rpc AdminGetBlockedData(Empty) returns (AdminGetBlockedDataResponse) {}
+    rpc AdminGetBlockedUsers(Empty) returns (AdminGetBlockedDataResponse) {}
     rpc AdminUpdateUserStatus(AdminUpdateUserStatusRequest) returns (AdminUpdateUserStatusResponse) {}
     rpc AdminDashboardData(AdminDashboardDataRequest) returns (AdminDashboardDataResponse) {}
 }
@@ -214,10 +214,11 @@ message user {
     string userImage = 4;
     string referral_code = 5;
     string account_status = 6;
+    string joiningDate = 8;
 }
 
 message AdminGetBlockedDataResponse {
-    repeated user User = 1;
+    repeated user Users = 1;
 }
 
 
