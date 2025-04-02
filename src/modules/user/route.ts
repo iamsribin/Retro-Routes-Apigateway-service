@@ -8,8 +8,8 @@ const controller = new userController();
 userRoute.post('/register',upload.single('userImage'), controller.register);
 userRoute.post('/checkUser', controller.checkUser);
 
+userRoute.post('/resendOtp',controller.resendOtp)
 userRoute.post('/checkLoginUser',controller.checkLoginUser);
-
 userRoute.post('/checkGoogleLoginUser',controller.checkGoogleLoginUser);
 
 export default userRoute;

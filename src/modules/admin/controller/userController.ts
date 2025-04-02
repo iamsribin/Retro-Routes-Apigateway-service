@@ -35,4 +35,23 @@ export default class AdminController {
         
     }
   }
+
+  getUserData = (req:Request, res:Response)=>{
+    try {
+      console.log("id", req.query);
+      
+      UserService.AdminGetUserData(req.query,(err:any, result:{User:UserInterface})=>{
+        if(err){
+          res.status(StatusCode.BadRequest).json({message:err})
+        }else{
+          console.log("response===",result);
+          
+          res.status(StatusCode.OK).json(result)
+        }
+      })
+    } catch (error) {
+      console.log(error);
+      
+    }
+  }
 }

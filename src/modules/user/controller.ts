@@ -78,6 +78,31 @@ export default class userController {
     }
   };
 
+  resendOtp= (req:Request,res:Response)=>{
+    try {
+        console.log(req.body);
+        UserService.ResendOtp(req.body,(err:any,result:{token:string,message:string})=>{
+            if(err){
+                res.status(StatusCode.BadRequest).json({message:err})
+            }else{
+                console.log("result ",result);
+                res.cookie("otp", result.token, {
+                    httpOnly: true,
+                    expires: new Date(Date.now() + 180000),
+                    sameSite: "none",
+                    secure: true,
+                    });
+                res.status(StatusCode.Created).json(result)
+            }
+        })
+        
+    } catch (error) {
+        console.log(error);
+         res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
+    }
+}
+
+
   checkGoogleLoginUser = (req: Request, res: Response) => {
     try {
       console.log("checkGoogleLoginUser",req.body);

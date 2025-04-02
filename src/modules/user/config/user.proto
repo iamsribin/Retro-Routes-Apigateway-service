@@ -44,7 +44,6 @@ message CheckUserRequest {
 message CheckUserResponse {
     string message = 1;
     string token = 2;
-
 }
 
 
@@ -57,9 +56,6 @@ message ResendOtpRequest {
     string email = 1;
     string name = 2;
 }
-
-
-
 
 message CheckGoogleLoginUserRequest {
     string email = 1;
@@ -241,7 +237,13 @@ message AdminGetUserDataResponse{
     string userImage = 4;
     string referral_code = 5;
     string account_status = 6;
+    int32 balance = 8;
+    int32 total_transactions = 9;
+    int32 completed_rides = 10;
+    int32 cancelled_rides = 11;
+    string joiningDate = 12;
 }
+
 message AdminDashboardDataRequest{
     
 }
