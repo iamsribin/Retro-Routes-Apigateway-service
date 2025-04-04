@@ -46,4 +46,39 @@ export default class DriverController{
            res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
         }
       }
+
+      getDriverDetails = async(req: Request, res: Response) => {
+        try {
+          console.log(req.query);
+          const operation = "get-admin-driver-details"
+          const response:DriverInterface = await adminRabbitMqClient.produce(req.query,operation)as DriverInterface;
+          console.log(response);
+          
+          res.status(StatusCode.OK).json(response);
+          console.log(response);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      updateDriverAccountStatus = async (req: Request, res: Response)=>{
+        try {
+          const id = req.params.id;
+          const {note,status} = req.body;
+          const operation = "admin-update-driver-account-status";
+        
+          const request = {id,resone:note,status};
+
+          console.log(request);
+          
+          const response = await adminRabbitMqClient.produce(request,operation);
+
+          console.log("updateDriverAccountStatus response==",response);
+          res.status(StatusCode.Accepted).json(response)
+          
+        } catch (error) {
+          console.log(error);
+          
+        }
+      }
 }

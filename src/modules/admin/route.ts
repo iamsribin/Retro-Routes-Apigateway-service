@@ -10,11 +10,12 @@ const adminUserController = new UserController()
 adminRoute.get("/getActiveUserData",isValidated,adminUserController.getActiveUsers);
 adminRoute.get("/blockedUserData",isValidated,adminUserController.getBlockedUsers);
 adminRoute.get("/userData",isValidated, adminUserController.getUserData);
+adminRoute.patch("/updateUserStatus", adminUserController.updateUserStatus);
 
 adminRoute.get("/verifiedDrivers",isValidated,adminDriverController.getVerifiedDrivers);
 adminRoute.get("/pendingDrivers",isValidated,adminDriverController.pendingDrivers);
 adminRoute.get("/blockedDrivers",isValidated,adminDriverController.getBlockedDrivers);
+adminRoute.get("/driver", isValidated, adminDriverController.getDriverDetails);
+adminRoute.post("/driver/verify/:id", isValidated, adminDriverController.updateDriverAccountStatus);
 
-
-adminRoute.patch("")
 export default adminRoute

@@ -221,6 +221,7 @@ message AdminGetBlockedDataResponse {
 message AdminUpdateUserStatusRequest {
    string id=1; 
    string status=2;
+   string reason=3;
 }
 message AdminUpdateUserStatusResponse {
     string message = 1;
@@ -242,6 +243,7 @@ message AdminGetUserDataResponse{
     int32 completed_rides = 10;
     int32 cancelled_rides = 11;
     string joiningDate = 12;
+    string reason = 13;
 }
 
 message AdminDashboardDataRequest{

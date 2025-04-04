@@ -87,15 +87,15 @@ export default class driverAuthController{
           const files:any=req.files
           let aadharImageUrl="sample"
           let licenseImageUrl="sample"
-          // if(files){
-          //   [aadharImageUrl, licenseImageUrl] = await Promise.all([
-          //     uploadToS3(files["aadharImage"][0]),
-          //     uploadToS3(files["licenseImage"][0])
-          // ]);
+          if(files){
+            [aadharImageUrl, licenseImageUrl] = await Promise.all([
+              uploadToS3(files["aadharImage"][0]),
+              uploadToS3(files["licenseImage"][0])
+          ]);
               console.log("licenseImageUrl",licenseImageUrl);
               console.log("aadharImageUrl",aadharImageUrl);
               
-          // }
+          }
         const operation = "identification-update";
         const response: Message = await driverRabbitMqClient.produce({...req.body,...req.query,aadharImageUrl,licenseImageUrl}, operation) as Message
         res.status(StatusCode.Created).json(response);
@@ -121,7 +121,7 @@ export default class driverAuthController{
         res.status(StatusCode.Created).json(response);
       } catch (e: any) {
         console.log(e);
-        return res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
+         res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
       }
     }
 
@@ -149,5 +149,4 @@ export default class driverAuthController{
          res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
       }
     }
-
 }

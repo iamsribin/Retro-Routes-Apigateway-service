@@ -32,7 +32,7 @@ export default class Producer {
       return new Promise((res, rej) => {
         this.eventEmitter.once(uuid, async (reply) => {
           try {
-            console.log("replaaaay",reply);
+            // console.log("replaaaay",reply);
             
             const replyDataString = Buffer.from(reply.content).toString("utf-8");
             const replyObject = JSON.parse(replyDataString);
