@@ -15,7 +15,8 @@ adminRoute.patch("/updateUserStatus", adminUserController.updateUserStatus);
 adminRoute.get("/verifiedDrivers",isValidated,adminDriverController.getVerifiedDrivers);
 adminRoute.get("/pendingDrivers",isValidated,adminDriverController.pendingDrivers);
 adminRoute.get("/blockedDrivers",isValidated,adminDriverController.getBlockedDrivers);
-adminRoute.get("/driver", isValidated, adminDriverController.getDriverDetails);
+adminRoute.get("/driverDetails/:id", isValidated, adminDriverController.getDriverDetails);
+// adminRoute.get("/driverDetails/:id", adminDriverController.)
 adminRoute.post("/driver/verify/:id", isValidated, adminDriverController.updateDriverAccountStatus);
 
 export default adminRoute

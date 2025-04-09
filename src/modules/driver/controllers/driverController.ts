@@ -157,6 +157,4 @@ export default class driverAuthController{
           return res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
         }
       }
-
-
 }

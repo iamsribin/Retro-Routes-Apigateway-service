@@ -17,16 +17,17 @@ export default class DriverController{
         } catch (e:any) {
           console.log(e);
            res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
-
         }
       }
 
       getVerifiedDrivers = async(req: Request, res: Response)=>{
         try {
           const operation = "get-admin-active-drivers";
-          const account_status = "Active"
+          const account_status = "Good"
 
           const response: DriverInterface = await adminRabbitMqClient.produce(account_status, operation)as DriverInterface
+          console.log("pending drivdsr", response);
+          
           res.status(StatusCode.Created).json(response);
         } catch (e:any) {
           console.log(e);
@@ -37,7 +38,7 @@ export default class DriverController{
       getBlockedDrivers = async(req: Request, res: Response)=>{
         try {
           const operation = "get-admin-blocked-drivers";
-          const account_status = "Blocked";
+          const account_status = "Block";
           
           const response: DriverInterface = await adminRabbitMqClient.produce(account_status, operation)as DriverInterface
           res.status(StatusCode.Created).json(response);
@@ -49,9 +50,9 @@ export default class DriverController{
 
       getDriverDetails = async(req: Request, res: Response) => {
         try {
-          console.log(req.query);
+          console.log(req.params.id);
           const operation = "get-admin-driver-details"
-          const response:DriverInterface = await adminRabbitMqClient.produce(req.query,operation)as DriverInterface;
+          const response:DriverInterface = await adminRabbitMqClient.produce(req.params,operation)as DriverInterface;
           console.log(response);
           
           res.status(StatusCode.OK).json(response);
@@ -78,7 +79,6 @@ export default class DriverController{
           
         } catch (error) {
           console.log(error);
-          
         }
       }
 }

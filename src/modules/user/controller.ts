@@ -33,6 +33,8 @@ export default class userController {
   };
   checkUser = async (req: Request, res: Response) => {
     try {
+      console.log("error",req.body);
+      
       UserService.CheckUser(
         req.body,
         (err: any, result: { token: string; message: string }) => {
@@ -52,7 +54,7 @@ export default class userController {
         }
       );
     } catch (error) {
-      console.log(error);
+      console.log("error=====",error);
       res
         .status(StatusCode.InternalServerError)
         .json({ message: "Internal Server Error" });
@@ -61,16 +63,16 @@ export default class userController {
 
   checkLoginUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log(req.body);
-      UserService.CheckLoginUser(req.body, (err: any, result: AuthResponse) => {
-        if (err) {
+      console.log("body",req.body);
+      UserService.CheckLoginUser(req.body,(err: any, result: AuthResponse) => {
+        if (err) {          
           res.status(StatusCode.BadRequest).json({ message: err });
         } else {
-          console.log("result ", result);
+          console.log("result", result);
           res.status(StatusCode.Created).json(result);
         }
-      });
-    } catch (error) {
+      })
+    }catch(error){
       console.log(error);
       res
         .status(StatusCode.InternalServerError)

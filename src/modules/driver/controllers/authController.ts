@@ -7,7 +7,6 @@ export default class driverAuthController{
 
   checkLogin=async(req: Request,
       res: Response,
-      next: NextFunction
     ) => {
       try {   
         console.log(req.body,"driver login");
@@ -16,45 +15,36 @@ export default class driverAuthController{
         const response: Message = await driverRabbitMqClient.produce({mobile}, operation) as Message
         res.status(StatusCode.Created).json(response);
       } catch (e: any) {
-        console.log(e);
          res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
       }
     }
   checkGoogleLoginDriver=async(req: Request,
       res: Response,
-      next: NextFunction
     ) => {
       try {
         console.log(req.body,"driver login");
         const {email}=req.body
         const operation = "google-login";
         const response: AuthResponse = await driverRabbitMqClient.produce({email}, operation) as AuthResponse
-        console.log(response);
         res.status(StatusCode.Created).json(response);
       } catch (e: any) {
-        console.log(e);
          res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
-
       }
     }
 
     register=async(req: Request,
       res: Response,
-      next: NextFunction
     ) => {
       try {
         const operation = "driver-register";
         const response: Message = await driverRabbitMqClient.produce(req.body, operation) as Message
         res.status(StatusCode.Created).json(response);
       } catch (e: any) {
-        console.log(e);
          res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
       }
     }
-    checkDriver=async(req: Request,
-      res: Response,
-      next: NextFunction
-    ) => {
+
+    checkDriver=async(req: Request,res: Response) => {
       try {
         const operation = "driver-check";
         const response: Message = await driverRabbitMqClient.produce(req.body, operation) as Message
@@ -65,10 +55,7 @@ export default class driverAuthController{
       }
     }
 
-    location=async(req: Request,
-      res: Response,
-      next: NextFunction
-    ) => {
+    location=async(req: Request,res: Response) => {
       try {
         const operation = "driver-location";
         const response: Message = await driverRabbitMqClient.produce({...req.body,...req.query}, operation) as Message
@@ -79,25 +66,27 @@ export default class driverAuthController{
       }
     }
 
-    identificationUpdate=async(req: Request,
-      res: Response,
-      next: NextFunction
-    ) => {
+    identificationUpdate=async(req: Request,res: Response) => {
       try {
           const files:any=req.files
-          let aadharImageUrl="sample"
-          let licenseImageUrl="sample"
+          let aadharFrontImage="sample"
+          let aadharBackImage="sample"
+          let licenseFrontImage="sample"
+          let licenseBackImage="sample"
           if(files){
-            [aadharImageUrl, licenseImageUrl] = await Promise.all([
-              uploadToS3(files["aadharImage"][0]),
-              uploadToS3(files["licenseImage"][0])
+            [aadharFrontImage, aadharBackImage,licenseFrontImage,licenseBackImage] = await Promise.all([
+              uploadToS3(files["aadharFrontImage"][0]),
+              uploadToS3(files["aadharBackImage"][0]),
+              uploadToS3(files["licenseFrontImage"][0]),
+              uploadToS3(files["licenseBackImage"][0]),
           ]);
-              console.log("licenseImageUrl",licenseImageUrl);
-              console.log("aadharImageUrl",aadharImageUrl);
-              
+              console.log("aadharBackImage",aadharBackImage);
+              console.log("aadharFrontImage",aadharFrontImage);
+              console.log("licenseFrontImage",licenseFrontImage);
+              console.log("licenseBackImage",licenseBackImage);  
           }
         const operation = "identification-update";
-        const response: Message = await driverRabbitMqClient.produce({...req.body,...req.query,aadharImageUrl,licenseImageUrl}, operation) as Message
+        const response: Message = await driverRabbitMqClient.produce({...req.body,...req.query,aadharFrontImage,aadharBackImage,licenseFrontImage,licenseBackImage}, operation) as Message
         res.status(StatusCode.Created).json(response);
       } catch (e: any) {
         console.log(e);
@@ -114,7 +103,6 @@ export default class driverAuthController{
         let url=""
         if(files){
           url=await uploadToS3(files)
-          console.log(url);
         }
         const operation = "driver-image-update";
         const response: Message = await driverRabbitMqClient.produce({...req.query,url}, operation) as Message
@@ -131,19 +119,49 @@ export default class driverAuthController{
     ) => {
       try {
           const files:any=req.files
-          let rcImageUrl=""
-          let carImageUrl=""
+          let rcFrondImageUrl=""
+          let rcBackImageUrl=""
+          let carFrondImageUrl=""
+          let carBackImageUrl=""
+          
           if(files){
-          [rcImageUrl, carImageUrl] = await Promise.all([
-              uploadToS3(files["rcImage"][0]),
-              uploadToS3(files["carImage"][0])
+          [rcFrondImageUrl, rcBackImageUrl,carFrondImageUrl,carBackImageUrl] = await Promise.all([
+              uploadToS3(files["rcFrontImage"][0]),
+              uploadToS3(files["rcBackImage"][0]),
+              uploadToS3(files["carFrontImage"][0]),
+              uploadToS3(files["carSideImage"][0]),
           ]);
-              console.log(carImageUrl,rcImageUrl);
-              
+              console.log(rcFrondImageUrl, rcBackImageUrl,carFrondImageUrl,carBackImageUrl);   
           }
-        const operation = "vehicle-image-update";
-        const response: Message = await driverRabbitMqClient.produce({...req.body,...req.query,rcImageUrl,carImageUrl}, operation) as Message
+        const operation = "vehicle-image&RC-update";
+        const response: Message = await driverRabbitMqClient.produce({...req.body,...req.query,rcFrondImageUrl, rcBackImageUrl,carFrondImageUrl,carBackImageUrl}, operation) as Message
         res.status(StatusCode.Created).json(response);
+      } catch (e: any) {
+        console.log(e);
+         res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
+      }
+    }
+
+    vehicleInsurancePolutionUpdate=async(req: Request,
+      res: Response,
+    ) => {
+      try {
+          const files:any=req.files
+          let pollutionImageUrl = "";
+          let insuranceImageUrl = ""
+          if(files){
+            [pollutionImageUrl, insuranceImageUrl] = await Promise.all([
+              uploadToS3(files["pollutionImage"][0]),
+              uploadToS3(files["insuranceImage"][0]),
+            ]) 
+          }   
+          console.log("insurance",pollutionImageUrl,insuranceImageUrl);
+ 
+          const operation = "vehicle-insurance&polution-update";
+          console.log(pollutionImageUrl,insuranceImageUrl);
+          const response:Message = await driverRabbitMqClient.produce({...req.query,...req.body,pollutionImageUrl,insuranceImageUrl},operation) as Message;
+          res.status(StatusCode.Created).json(response); 
+           
       } catch (e: any) {
         console.log(e);
          res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
