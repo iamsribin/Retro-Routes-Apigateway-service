@@ -167,4 +167,36 @@ export default class driverAuthController{
          res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
       }
     }
+
+    getResubmissionData = async(req:Request, res: Response) =>{
+      try {
+        const {id} = req.params;
+        const operation = "get-resubmission-documents";
+        const response = await driverRabbitMqClient.produce({id},operation);
+        console.log("findResubmissonData",response);
+      
+        res.status(StatusCode.Accepted).json(response);
+      } catch (error) {
+        console.log(error);
+        res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
+      
+      }
+          }
+
+          postResubmissionData = async(req:Request, res: Response) =>{
+            try {
+              const {driverId} = req.query;
+              console.log("body",driverId,req.body);
+              
+              const operation = "post-resubmission-documents";
+              const response = await driverRabbitMqClient.produce({driverId},operation);
+              console.log("findResubmissonData",response);
+            
+              res.status(StatusCode.Accepted).json(response);
+            } catch (error) {
+              console.log(error);
+              res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
+            
+            }
+                }
 }

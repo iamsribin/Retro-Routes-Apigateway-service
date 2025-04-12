@@ -64,13 +64,12 @@ export default class DriverController{
 
       updateDriverAccountStatus = async (req: Request, res: Response)=>{
         try {
-          const id = req.params.id;
-          const {note,status} = req.body;
+          const id = req.params.id;          
+          const {note,status,fields} = req.body;
+
           const operation = "admin-update-driver-account-status";
         
-          const request = {id,resone:note,status};
-
-          console.log(request);
+          const request = {id,resone:note,status,fields};
           
           const response = await adminRabbitMqClient.produce(request,operation);
 

@@ -13,4 +13,7 @@ driverRoute.post("/identification",upload.fields([{ name: "aadharFrontImage", ma
 driverRoute.post("/uploadDriverImage",upload.single("driverImage"),AuthController.updateDriverImage);
 driverRoute.post("/vehicleDetails",upload.fields([{ name: "rcFrontImage", maxCount: 1 },{ name: "rcBackImage", maxCount: 1 },{ name: "carFrontImage", maxCount: 1 },{ name: "carSideImage", maxCount: 1 },]),AuthController.vehicleUpdate);
 driverRoute.post("/insuranceDetails",upload.fields([{ name: "pollutionImage", maxCount: 1 },{ name: "insuranceImage", maxCount: 1 }]),AuthController.vehicleInsurancePolutionUpdate);
+driverRoute.get("/resubmission/:id", AuthController.getResubmissionData);
+driverRoute.post("/resubmission", AuthController.getResubmissionData);
+
 export default driverRoute
