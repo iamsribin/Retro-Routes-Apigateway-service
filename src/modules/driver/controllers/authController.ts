@@ -183,20 +183,63 @@ export default class driverAuthController{
       }
           }
 
-          postResubmissionData = async(req:Request, res: Response) =>{
+          postResubmissionData = async (req: Request, res: Response) => {
             try {
-              const {driverId} = req.query;
-              console.log("body",driverId,req.body);
-              
+              const { driverId } = req.query;
+              const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+              const body = req.body;
+          console.log("body==",body);
+          
+          
+              const uploadPromises: Promise<string>[] = [];
+              const fileFields = [
+                "aadharFrontImage",
+                "aadharBackImage",
+                "licenseFrontImage",
+                "licenseBackImage",
+                "rcFrontImage",
+                "rcBackImage",
+                "carFrontImage",
+                "carBackImage",
+                "insuranceImage",
+                "pollutionImage",
+                "driverImage",
+              ];
+          
+              const fileUrls: { [key: string]: string } = {};
+          
+              fileFields.forEach((field) => {
+                console.log("fiels==❤️❤️❤️",files[field]?.[0]);
+                
+                if (files[field]?.[0]) {
+                  uploadPromises.push(
+                    uploadToS3(files[field][0]).then((url) => {
+                      fileUrls[field] = url;
+                      return url;
+                    })
+                  );
+                }
+              });
+          
+              await Promise.all(uploadPromises);
+          
+              const payload = {
+                driverId,
+                ...body,
+                ...fileUrls,
+              };
+          
+              console.log("Sending to driver service:", payload);
+          
               const operation = "post-resubmission-documents";
-              const response = await driverRabbitMqClient.produce({driverId},operation);
-              console.log("findResubmissonData",response);
-            
+              const response = await driverRabbitMqClient.produce(payload, operation);
+          
+              console.log("Response from driver service:", response);
+          
               res.status(StatusCode.Accepted).json(response);
             } catch (error) {
-              console.log(error);
-              res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
-            
+              console.error("Error in postResubmissionData:", error);
+              res.status(StatusCode.InternalServerError).json({ message: "Internal Server Error" });
             }
-                }
+          };
 }

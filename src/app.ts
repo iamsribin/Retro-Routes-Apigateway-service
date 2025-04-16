@@ -8,10 +8,11 @@ import http from "http";
 import { limiter } from "./utils/rateLimitter";
 import "dotenv/config";
 
-import userRoute from "./modules/user/route";
-import driverRoute from "./modules/driver/route";
+import { protectedUserRoute, publicUserRoute } from "./modules/user/route";
+import  { protectedDriverRoute, publicDriverRoute } from "./modules/driver/route";
 import authRoute from "./modules/auth/route"
 import adminRoute from "./modules/admin/route"
+import { isValidated } from "./modules/auth/controller";
 
 class App {        
   public app: Application;
@@ -44,10 +45,15 @@ class App {
   }
 
   private routes(): void {
-    this.app.use("/api/user", userRoute);
-    this.app.use("/api/driver", driverRoute);
+    // Public routes 
+    this.app.use("/api/user", publicUserRoute);
+    this.app.use("/api/driver", publicDriverRoute);
+    this.app.use("/api/auth", authRoute);
+    // Protected routes 
     this.app.use('/api/auth',authRoute);
-    this.app.use('/api/admin',adminRoute)
+    this.app.use("/api/user", isValidated("User"), protectedUserRoute);
+    this.app.use("/api/driver", isValidated("Driver"), protectedDriverRoute);
+    this.app.use("/api/admin", isValidated("Admin"), adminRoute);
   }
 
   public startServer(port: number): void {

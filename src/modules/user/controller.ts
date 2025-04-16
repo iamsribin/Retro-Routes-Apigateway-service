@@ -16,6 +16,8 @@ export default class userController {
       UserService.Register(
         { ...req.body, userImage, token },
         (err: any, result: Message) => {
+          console.log("result",result);
+          
           if (err) {
             console.log(err);
             res.status(StatusCode.BadRequest).json({ message: err });
@@ -63,7 +65,7 @@ export default class userController {
 
   checkLoginUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log("body",req.body);
+   
       UserService.CheckLoginUser(req.body,(err: any, result: AuthResponse) => {
         if (err) {          
           res.status(StatusCode.BadRequest).json({ message: err });

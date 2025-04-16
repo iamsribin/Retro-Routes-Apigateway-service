@@ -69,7 +69,7 @@ export default class DriverController{
 
           const operation = "admin-update-driver-account-status";
         
-          const request = {id,resone:note,status,fields};
+          const request = {id,reason:note,status,fields};
           
           const response = await adminRabbitMqClient.produce(request,operation);
 

@@ -2,25 +2,28 @@ syntax = "proto3";
 
 package authpackage;
 
-service Auth{
-  rpc IsAuthenticated(AuthReq) returns(AuthRes) {};
-  rpc RefreshToken(RefreshReq) returns(RefreshRes) {};
+service Auth {
+  rpc IsAuthenticated(IsAuthenticatedRequest) returns (IsAuthenticatedResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
 }
 
-message RefreshReq{
+message IsAuthenticatedRequest {
+  string token = 1;
+  string requiredRole = 2; // New field for required role
+}
+
+message IsAuthenticatedResponse {
+  string userId = 1;
+  string role = 2;
+  string message = 3; // For error messages
+}
+
+message RefreshTokenRequest {
   string token = 1;
 }
 
-message RefreshRes{
+message RefreshTokenResponse {
   string access_token = 1;
   string refresh_token = 2;
-}
-
-message AuthReq {
-  string token = 1;
-}
-
-message AuthRes {
-  string user_id = 1;
-  string role = 2;
+  string message = 3; // For error messages
 }

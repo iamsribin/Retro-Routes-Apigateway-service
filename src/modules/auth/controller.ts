@@ -1,57 +1,115 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthClient } from './config/grpc-client/auht.client';
 import AsyncHandler from "express-async-handler";
+import { AuthClient } from "./config/grpc-client/auth.client";
 import { StatusCode } from "../../interfaces/enum";
-import { Tokens, UserCredentials } from "../../interfaces/interface";
 
-export const isValidated = AsyncHandler(
-  (req: Request, res: Response, next: NextFunction) => {
-    try {  
-      
-      const token = req.cookies?.token || req.headers.authorization?.trim().split(" ")[1];
-       
-      AuthClient.IsAuthenticated({ token }, (err:any, result:UserCredentials) => {
-        if (err) {
-          console.log(err);
-          res.status(StatusCode.Unauthorized).json({ success: false, message: err });
-        } else {
-          console.log("called next...");
-          
-          next();
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        role: string;
+      };
     }
   }
-);
+}
 
-export const refreshToken = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const token = req.cookies?.refreshToken ||req.headers.authorization?.trim().split(" ")[1] || req.body.token;
-    console.log("token======", token);
-    
-    if (token) {
-      AuthClient.RefreshToken({ token }, (err:any, result:Tokens) => {
-        if (err) {
-          console.log(err);
-          res.status(StatusCode.NotAcceptable).json({ message: "Invalid refresh token" });
-        } else {
-          console.log(result,"ithu refresh------");
-          res
-            .status(StatusCode.Created)
-            .json({ success: true,token:result?.accessToken ,refreshToken:result?.refreshToken ,message: "new token generated successfully" });
-        }
+interface UserCredentials {
+  userId: string;
+  role: string;
+  message: string;
+}
+
+interface TokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  message: string;
+}
+
+export const isValidated = (requiredRole: string) =>
+  AsyncHandler((req: Request, res: Response, next: NextFunction): void => {
+    const token =
+      req.cookies?.token || req.headers.authorization?.trim().split(" ")[1];
+
+    if (!token) {
+      res.status(StatusCode.Unauthorized).json({
+        success: false,
+        message: "No token provided",
       });
-    } else {
-      res.status(StatusCode.Unauthorized).json({message: "Token is missing"});
+      return;
     }
-  } catch (error) {
-    console.log(error);
-  }
-};
+
+    AuthClient.IsAuthenticated(
+      { token, requiredRole },
+      (err: any, result: UserCredentials) => {
+        if (err) {
+          console.error("gRPC error:", err);
+          res.status(StatusCode.Unauthorized).json({
+            success: false,
+            message: "Authentication error",
+          });
+          return;
+        }
+
+        if (result.message) {
+          res.status(
+            result.message.includes("Access denied")
+              ? StatusCode.Forbidden
+              : StatusCode.Unauthorized
+          ).json({ success: false, message: result.message });
+          return;
+        }
+
+        req.user = { id: result.userId, role: result.role };
+        next();
+      }
+    );
+  });
+
+
+  export const refreshToken = AsyncHandler(
+    async (req: Request, res: Response) => {
+      const token =
+        req.cookies?.refreshToken ||
+        (req.headers.authorization && req.headers.authorization.trim().split(" ")[1]) ||
+        req.body.token;
+  
+      if (!token) {
+        res.status(StatusCode.Unauthorized).json({
+          success: false,
+          message: "Token is missing",
+        });
+        return;
+      }
+  
+      await new Promise<void>((resolve) => {
+        AuthClient.RefreshToken({ token }, (err: any, result: TokenResponse) => {
+          if (err) {
+            console.error("gRPC refresh error:", err);
+            res.status(StatusCode.NotAcceptable).json({
+              success: false,
+              message: "Invalid refresh token",
+            });
+            return resolve(); 
+          }
+  
+          if (result.message) {
+            res.status(StatusCode.Unauthorized).json({
+              success: false,
+              message: result.message,
+            });
+            return resolve(); 
+          }
+  
+          res.status(StatusCode.Created).json({
+            success: true,
+            token: result.accessToken,
+            refreshToken: result.refreshToken,
+            message: "New token generated successfully",
+          });
+          resolve();
+        });
+      });
+    }
+  );
+  

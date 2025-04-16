@@ -1,19 +1,74 @@
-import express,{Application} from 'express'
-import upload from '../../middleware/multer'
-import driverAuthController from './controllers/authController'
+import express from "express";
+import upload from "../../middleware/multer";
+import driverAuthController from "./controllers/authController";
 
-const driverRoute=express.Router()
-const AuthController= new driverAuthController()
+const publicDriverRoute = express.Router();
+const protectedDriverRoute = express.Router();
+const AuthController = new driverAuthController();
 
-driverRoute.post("/checkLoginDriver", AuthController.checkLogin);
-driverRoute.post("/checkDriver", AuthController.checkDriver);
-driverRoute.post("/registerDriver", AuthController.register);
-driverRoute.post("/location", AuthController.location);
-driverRoute.post("/identification",upload.fields([{ name: "aadharFrontImage", maxCount: 1 },{ name: "aadharBackImage", maxCount: 1 },{ name: "licenseFrontImage", maxCount: 1 },{ name: "licenseBackImage", maxCount: 1 }]),AuthController.identificationUpdate);
-driverRoute.post("/uploadDriverImage",upload.single("driverImage"),AuthController.updateDriverImage);
-driverRoute.post("/vehicleDetails",upload.fields([{ name: "rcFrontImage", maxCount: 1 },{ name: "rcBackImage", maxCount: 1 },{ name: "carFrontImage", maxCount: 1 },{ name: "carSideImage", maxCount: 1 },]),AuthController.vehicleUpdate);
-driverRoute.post("/insuranceDetails",upload.fields([{ name: "pollutionImage", maxCount: 1 },{ name: "insuranceImage", maxCount: 1 }]),AuthController.vehicleInsurancePolutionUpdate);
-driverRoute.get("/resubmission/:id", AuthController.getResubmissionData);
-driverRoute.post("/resubmission", AuthController.getResubmissionData);
+// Public routes 
+publicDriverRoute.post("/checkLoginDriver", AuthController.checkLogin);
+publicDriverRoute.post("/checkDriver", AuthController.checkDriver);
+publicDriverRoute.post("/registerDriver", AuthController.register);
 
-export default driverRoute
+// Protected routes 
+publicDriverRoute.post("/location", AuthController.location);
+
+publicDriverRoute.post(
+  "/identification",
+  upload.fields([
+    { name: "aadharFrontImage", maxCount: 1 },
+    { name: "aadharBackImage", maxCount: 1 },
+    { name: "licenseFrontImage", maxCount: 1 },
+    { name: "licenseBackImage", maxCount: 1 },
+  ]),
+  AuthController.identificationUpdate
+);
+
+publicDriverRoute.post(
+  "/uploadDriverImage",
+  upload.single("driverImage"),
+  AuthController.updateDriverImage
+);
+
+publicDriverRoute.post(
+  "/vehicleDetails",
+  upload.fields([
+    { name: "rcFrontImage", maxCount: 1 },
+    { name: "rcBackImage", maxCount: 1 },
+    { name: "carFrontImage", maxCount: 1 },
+    { name: "carSideImage", maxCount: 1 },
+  ]),
+  AuthController.vehicleUpdate
+);
+
+publicDriverRoute.post(
+  "/insuranceDetails",
+  upload.fields([
+    { name: "pollutionImage", maxCount: 1 },
+    { name: "insuranceImage", maxCount: 1 },
+  ]),
+  AuthController.vehicleInsurancePolutionUpdate
+);
+
+publicDriverRoute.get("/resubmission/:id", AuthController.getResubmissionData);
+
+publicDriverRoute.post(
+  "/resubmission",
+  upload.fields([
+    { name: "aadharFrontImage", maxCount: 1 },
+    { name: "aadharBackImage", maxCount: 1 },
+    { name: "licenseFrontImage", maxCount: 1 },
+    { name: "licenseBackImage", maxCount: 1 },
+    { name: "rcFrontImage", maxCount: 1 },
+    { name: "rcBackImage", maxCount: 1 },
+    { name: "carFrontImage", maxCount: 1 },
+    { name: "carBackImage", maxCount: 1 },
+    { name: "insuranceImage", maxCount: 1 },
+    { name: "pollutionImage", maxCount: 1 },
+    { name: "driverImage", maxCount: 1 },
+  ]),
+  AuthController.postResubmissionData
+);
+
+export { publicDriverRoute, protectedDriverRoute };
