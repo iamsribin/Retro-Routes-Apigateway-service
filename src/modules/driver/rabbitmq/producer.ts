@@ -15,7 +15,7 @@ export default class Producer {
       const uuid = randomUUID();
 
       this.channel.sendToQueue(
-        rabbitmqConfig.queues.dirverQueue,
+        rabbitmqConfig.queues.driverQueue,
         Buffer.from(JSON.stringify(data)),
         {
           replyTo: this.replyQueueName,

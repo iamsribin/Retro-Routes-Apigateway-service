@@ -5,7 +5,7 @@ import helmet from "helmet";
 import logger from "morgan";
 import cookieParser from "cookie-parser";
 import http from "http";
-import { limiter } from "./utils/rateLimitter";
+import { limiter } from "./utils/rateLimiter";
 import "dotenv/config";
 
 import { protectedUserRoute, publicUserRoute } from "./modules/user/route";
@@ -13,6 +13,7 @@ import  { protectedDriverRoute, publicDriverRoute } from "./modules/driver/route
 import authRoute from "./modules/auth/route"
 import adminRoute from "./modules/admin/route"
 import { isValidated } from "./modules/auth/controller";
+import { setupSocketIO } from "./modules/socket/socket";
 
 class App {        
   public app: Application;
@@ -26,6 +27,7 @@ class App {
     this.server = http.createServer(this.app);
     this.applyMiddleware();
     this.routes();
+    setupSocketIO(this.server);
   }
 
   private applyMiddleware(): void {

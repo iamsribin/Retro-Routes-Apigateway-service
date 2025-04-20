@@ -9,13 +9,13 @@ service Auth {
 
 message IsAuthenticatedRequest {
   string token = 1;
-  string requiredRole = 2; // New field for required role
+  string requiredRole = 2; 
 }
 
 message IsAuthenticatedResponse {
   string userId = 1;
   string role = 2;
-  string message = 3; // For error messages
+  string message = 3; 
 }
 
 message RefreshTokenRequest {
@@ -25,5 +25,5 @@ message RefreshTokenRequest {
 message RefreshTokenResponse {
   string access_token = 1;
   string refresh_token = 2;
-  string message = 3; // For error messages
+  string message = 3; 
 }

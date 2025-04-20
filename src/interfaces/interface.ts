@@ -1,4 +1,4 @@
-
+import { Socket } from "socket.io";
 export interface Message {
     message: string ;
   }
@@ -43,3 +43,13 @@ export interface Message {
         cancelledRides: number;
     };
   }
+
+  interface DecodedToken {
+    clientId: string,
+    role:string
+    
+    }
+
+  export interface AuthenticatedSocket extends Socket {
+    decoded?: DecodedToken;
+    }

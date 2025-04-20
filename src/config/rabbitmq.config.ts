@@ -5,7 +5,7 @@ export default {
     url: String(process.env.RABBITMQ_URL),
   },
   queues: {
-    dirverQueue: "drivers_queue",
-    rideQueue: "ride_queue",
+    driverQueue: "drivers_queue",
+    rideQueue: "booking_queue",
   },
 };
