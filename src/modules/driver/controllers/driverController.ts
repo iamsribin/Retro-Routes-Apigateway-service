@@ -16,7 +16,7 @@ export default class driverAuthController{
       const operation = "login-check";
       const response: Message = await driverRabbitMqClient.produce(
         { mobile },
-        operation
+        operation 
       ) as Message;
       return res.status(StatusCode.Created).json(response);
     } catch (e: any) {
