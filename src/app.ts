@@ -14,6 +14,7 @@ import authRoute from "./modules/auth/route"
 import adminRoute from "./modules/admin/route"
 import { isValidated } from "./modules/auth/controller";
 import { setupSocketIO } from "./modules/socket/socket";
+import {isEnvDefined} from "./utils/envChecker";
 
 class App {        
   public app: Application;
@@ -28,6 +29,7 @@ class App {
     this.applyMiddleware();
     this.routes();
     setupSocketIO(this.server);
+    isEnvDefined();
   }
 
   private applyMiddleware(): void {

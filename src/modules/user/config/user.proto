@@ -14,7 +14,7 @@ service User {
     rpc RidePayment(RidePaymentRequest) returns (RidePaymentResponse) {}
     rpc razorpayPayment(razorpayPaymentRequest) returns (razorpayPaymentResponse) {}
     rpc AdminLogin(AdminLoginRequest) returns (AdminLoginResponse) {}
-    rpc AdiminGetActiveUser(Empty) returns (AdminGetDataResponse) {}
+    rpc AdminGetActiveUser(Empty) returns (AdminGetDataResponse) {}
     rpc AdminGetUserData(AdminGetUserDataRequest) returns (AdminGetUserDataResponse) {}
     rpc AdminGetBlockedUsers(Empty) returns (AdminGetBlockedDataResponse) {}
     rpc AdminUpdateUserStatus(AdminUpdateUserStatusRequest) returns (AdminUpdateUserStatusResponse) {}
@@ -37,6 +37,7 @@ message RegisterResponse {
 
 
 message CheckUserRequest {
+    string name = 3;
     string email = 1;
     string mobile = 2;
 }
@@ -68,12 +69,11 @@ message CheckGoogleLoginUserResponse {
     string refreshToken = 5;
     string _id = 4;
     string role = 6;
-
 }
 
 
 message CheckLoginUserRequest {
-    int64 mobile = 1;
+    string mobile = 1;
 }
 
 message CheckLoginUserResponse {
@@ -199,7 +199,7 @@ message Empty {
 }
 
 message AdminGetDataResponse {
-    repeated user User=1;
+    repeated user Users=1;
 }
 
 message user {

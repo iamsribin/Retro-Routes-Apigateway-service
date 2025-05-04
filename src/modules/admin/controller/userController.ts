@@ -6,14 +6,15 @@ import { StatusCode } from "../../../interfaces/enum";
 export default class AdminController {
   getActiveUsers = (req: Request, res: Response) => {
     try {
-      UserService.AdiminGetActiveUser(
+      UserService.AdminGetActiveUser(
         {},
-        (err: any, result: { User: UserInterface }) => {
+        (err: any, result: { Users: UserInterface }) => {
+          console.log(err);
+          
           if (err) {
             res.status(StatusCode.BadRequest).json({ message: err });
           } else {
-            console.log("result:::", result);
-            res.status(StatusCode.Created).json(result.User);
+            res.status(StatusCode.Created).json(result.Users);
           }
         }
       );
@@ -28,6 +29,7 @@ export default class AdminController {
         {},
         (err: any, result: { Users: UserInterface }) => {
           console.log("blocked result", result);
+          console.log("blocked err", err);
 
           if (err) {
             res.status(StatusCode.BadRequest).json({ message: err });

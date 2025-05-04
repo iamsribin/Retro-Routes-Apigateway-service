@@ -7,7 +7,6 @@ import bookingRabbitMqClient from '../booking/rabbitmq/client';
 import driverRabbitMqClient from '../driver/rabbitmq/client';
 import redisClient from '../../config/redis.config';
 import { Message } from 'amqplib';
-import { sign } from 'crypto';
 
 interface BookingResponse {
   nearbyDrivers: { driverId: string; distance: number; rating: number; cancelCount: number }[];
@@ -53,7 +52,7 @@ interface RideRequestData {
 export const setupSocketIO = (server: HttpServer): SocketIOServer => {
   const io = new SocketIOServer(server, {
     cors: {
-      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+      origin: process.env.CORS_ORIGIN,
       methods: ['GET', 'POST'],
       credentials: true,
     },
@@ -383,7 +382,6 @@ export const setupSocketIO = (server: HttpServer): SocketIOServer => {
         }
       }
     });
-    
   });
 
   return io;

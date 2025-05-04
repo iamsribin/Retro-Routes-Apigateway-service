@@ -1,12 +1,8 @@
 import { Channel ,connect,Connection} from "amqplib";
-
 import rabbitmqConfig from "../../../config/rabbitmq.config";
-
 import Producer from "./producer";
 import {EventEmitter} from 'events'
-
 import Consumer from "./consumer";
-
 
 class RabbitMqClient{
     private constructor(){}
@@ -24,7 +20,6 @@ class RabbitMqClient{
     public static getInstance(){
         if(!this.instance){
             this.instance=new RabbitMqClient()
-
         }
         return this.instance
     }
@@ -56,8 +51,7 @@ class RabbitMqClient{
             this.consumer?.consumeMessage()
             this.isInitialized=true
         }catch(error){
-            console.log("rabbitMq error ... ",error);
-            
+            console.log("rabbitMq error ... ",error);  
         }
     }
 
