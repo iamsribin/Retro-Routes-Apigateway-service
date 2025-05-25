@@ -1,15 +1,19 @@
 import express from "express";
 import upload from "../../middleware/multer";
 import driverAuthController from "./controllers/authController";
+import DriverController from "./controllers/driverController";
+
 
 const publicDriverRoute = express.Router();
 const protectedDriverRoute = express.Router();
 const AuthController = new driverAuthController();
+const driverController = new DriverController()
 
 // Public routes 
 publicDriverRoute.post("/checkLoginDriver", AuthController.checkLogin);
 publicDriverRoute.post("/checkDriver", AuthController.checkDriver);
 publicDriverRoute.post("/registerDriver", AuthController.register);
+publicDriverRoute.post("/checkGoogleLoginDriver", AuthController.checkGoogleLoginDriver);
 
 // Protected routes 
 publicDriverRoute.post("/location", AuthController.location);
@@ -70,5 +74,7 @@ publicDriverRoute.post(
   ]),
   AuthController.postResubmissionData
 );
+
+publicDriverRoute.get("/getDriverDetails/:id",driverController.fetchDriverDetails)
 
 export { publicDriverRoute, protectedDriverRoute };

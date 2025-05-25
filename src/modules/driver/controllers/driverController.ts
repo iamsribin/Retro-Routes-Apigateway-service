@@ -3,7 +3,7 @@ import driverRabbitMqClient from "../rabbitmq/client"
 import { StatusCode } from '../../../interfaces/enum'
 import  uploadToS3 from '../../../services/s3'
 import { AuthResponse, Message } from "../../../interfaces/interface"
-export default class driverAuthController{
+export default class DriverAuthController{
 
   checkLogin = async (
     req: Request,
@@ -36,7 +36,7 @@ export default class driverAuthController{
           const {email}=req.body
           const operation = "google-login";
           const response: AuthResponse = await driverRabbitMqClient.produce({email}, operation) as AuthResponse
-          console.log(response);
+          console.log("====",response);
           res.status(StatusCode.Created).json(response);
         } catch (e: any) {
           console.log(e);
@@ -133,10 +133,7 @@ export default class driverAuthController{
         }
       }
 
-      vehicleUpdate=async(req: Request,
-        res: Response,
-        next: NextFunction
-      ) => {
+      vehicleUpdate=async(req: Request, res: Response) => {
         try {
             const files:any=req.files
             let rcImageUrl=""
@@ -155,6 +152,21 @@ export default class driverAuthController{
         } catch (e: any) {
           console.log(e);
           return res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
+        }
+      }
+
+      fetchDriverDetails= async(req: Request, res: Response)=>{
+        try {
+          const operation = "get-driver-profile";
+          const {id} = req.params
+          console.log("id ===", id);
+          
+          const response = await driverRabbitMqClient.produce(id,operation);
+          console.log("response==",response);
+          res.status(StatusCode.Accepted).json(response);
+        } catch (error) {
+          console.log(error); 
+          
         }
       }
 }

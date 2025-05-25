@@ -12,8 +12,17 @@ export default class DriverController{
           const operation = "get-admin-pending-drivers";
           const account_status = "Pending";
 
-          const response: DriverInterface = await adminRabbitMqClient.produce(account_status, operation)as DriverInterface
-          res.status(StatusCode.Created).json(response);
+          const response: DriverInterface = await adminRabbitMqClient.produce(account_status, operation) as DriverInterface;
+          console.log("response==", response);
+          
+          let data: any = response;
+          
+          if (response && Object.keys(response).length === 0) {
+            data = [];
+          }
+          
+          res.status(StatusCode.Created).json(data);
+          
         } catch (e:any) {
           console.log(e);
            res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
@@ -25,10 +34,14 @@ export default class DriverController{
           const operation = "get-admin-active-drivers";
           const account_status = "Good"
 
-          const response: DriverInterface = await adminRabbitMqClient.produce(account_status, operation)as DriverInterface
-          console.log("pending drivdsr", response);
+          const response: DriverInterface | [] = await adminRabbitMqClient.produce(account_status, operation)as DriverInterface
+          let data: any = response;
           
-          res.status(StatusCode.Created).json(response);
+          if (response && Object.keys(response).length === 0) {
+            data = [];
+          }
+          
+          res.status(StatusCode.Created).json(data);    
         } catch (e:any) {
           console.log(e);
            res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
@@ -41,8 +54,13 @@ export default class DriverController{
           const account_status = "Block";
           
           const response: DriverInterface = await adminRabbitMqClient.produce(account_status, operation)as DriverInterface
-          res.status(StatusCode.Created).json(response);
-        } catch (e:any) {
+          let data: any = response;
+          
+          if (response && Object.keys(response).length === 0) {
+            data = [];
+          }
+          
+          res.status(StatusCode.Created).json(data);        } catch (e:any) {
           console.log(e);
            res.status(StatusCode.InternalServerError).json({ message: 'Internal Server Error' });
         }

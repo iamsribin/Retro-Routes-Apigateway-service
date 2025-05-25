@@ -72,17 +72,17 @@ export default class AdminController {
         status,
         id,
       };
-      console.log(request);
+      console.log("updateUserStatus request==",request);
 
       UserService.AdminUpdateUserStatus(
         request,
-        (err: any, result: { message: any }) => {
+        (err: any, result: { message: any}) => {
           if (err) {
             console.log("error===", err);
             res.status(StatusCode.BadRequest).json({ message: err });
           } else {
-            console.log(result);
-            res.status(StatusCode.OK).json({ message: "Success" });
+            console.log("AdminUpdateUserStatus result==",result);
+            res.status(StatusCode.OK).json({ message: "Success",userId:id });
           }
         }
       );

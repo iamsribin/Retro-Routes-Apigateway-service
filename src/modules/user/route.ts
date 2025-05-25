@@ -1,9 +1,9 @@
 import express from "express";
 import userController from "./controller";
 import upload from "../../middleware/multer";
-
+import BookingController from "../booking/controller";
 const controller = new userController();
-
+const bookingController = new BookingController();
 // Public routes 
 const publicUserRoute = express.Router();
 publicUserRoute.post("/register", upload.single("userImage"), controller.register);
@@ -11,6 +11,7 @@ publicUserRoute.post("/checkUser", controller.checkUser);
 publicUserRoute.post("/resendOtp", controller.resendOtp);
 publicUserRoute.post("/checkLoginUser", controller.checkLoginUser);
 publicUserRoute.post("/checkGoogleLoginUser", controller.checkGoogleLoginUser);
+publicUserRoute.get("/vehicles", bookingController.fetchVehicles);
 
 // Protected routes 
 const protectedUserRoute = express.Router();
