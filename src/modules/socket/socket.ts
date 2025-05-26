@@ -125,50 +125,50 @@ const refreshTokenWithAuthClient = (refreshToken: string): Promise<Tokens> => {
 // Authenticate socket connection
 const authenticateSocket = async (socket: AuthenticatedSocket, next: (err?: Error) => void) => {
   const { token, refreshToken } = socket.handshake.query as { token: string; refreshToken: string };
-  
+
   if (!token) {
-    console.error("Authentication error: Missing token");
-    return next(new Error("Authentication error: Token missing"));
+    console.error('Authentication error: Missing token');
+    return next(new Error('Authentication error: Token missing'));
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       clientId: string;
-      role: string;
+      role: 'User' | 'Driver' | 'Admin';
     };
     socket.decoded = decoded;
     console.log(`Authenticated ${decoded.role}: ${decoded.clientId}`);
     return next();
   } catch (err) {
     if (!refreshToken) {
-      console.error("Authentication error: Invalid token, no refresh token");
-      return next(new Error("Authentication error: Invalid token"));
+      console.error('Authentication error: Invalid token, no refresh token');
+      return next(new Error('Authentication error: Invalid token'));
     }
 
     try {
       const result = await refreshTokenWithAuthClient(refreshToken);
-      socket.emit("tokens-updated", {
+      socket.emit('tokens-updated', {
         token: result.accessToken,
         refreshToken: result.refreshToken,
       });
 
       const decoded = jwt.verify(result.accessToken, process.env.JWT_SECRET as string) as {
         clientId: string;
-        role: string;
+        role: 'User' | 'Driver' | 'Admin';
       };
       socket.decoded = decoded;
       console.log(`Token refreshed for ${decoded.role}: ${decoded.clientId}`);
       return next();
     } catch (error) {
-      console.error("Authentication error: Token refresh failed", error);
-      return next(new Error("Authentication error: Token refresh failed"));
+      console.error('Authentication error: Token refresh failed', error);
+      return next(new Error('Authentication error: Token refresh failed'));
     }
+  }
 };
-}
 // Handle socket connection and events
 const handleSocketConnection = (socket: AuthenticatedSocket, io: SocketIOServer) => {
   if (!socket.decoded) {
-    console.error("Missing decoded token, disconnecting");
+    console.error('Missing decoded token, disconnecting');
     socket.disconnect();
     return;
   }
@@ -176,22 +176,45 @@ const handleSocketConnection = (socket: AuthenticatedSocket, io: SocketIOServer)
   const { clientId: userId, role } = socket.decoded;
   console.log(`${role} connected: ${userId}`);
 
-  // Register user in socket map
-  if (userId !== "undefined") {
+  // Register user/admin in socket map
+  if (userId !== 'undefined') {
     userSocketMap[userId] = socket.id;
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-    console.log("Updated userSocketMap:", userSocketMap);
+    io.emit('getOnlineUsers', Object.keys(userSocketMap));
+    console.log('Updated userSocketMap:', userSocketMap);
   }
 
   // Join appropriate room
-  socket.join(role === "Driver" ? `driver:${userId}` : `user:${userId}`);
+  socket.join(`${role.toLowerCase()}:${userId}`);
 
   // Set up event listeners
   setupChatEvents(socket, io, role, userId);
   setupDriverEvents(socket, io, role, userId);
   setupRideRequestEvents(socket, io, role, userId);
-  setupUserBlockEvents(socket, io, userId);
+  if (role === 'Admin') {
+    setupAdminEvents(socket, io, userId);
+  }
   setupDisconnectEvents(socket, io, role, userId);
+};
+
+// Admin-specific event handlers
+const setupAdminEvents = (socket: AuthenticatedSocket, io: SocketIOServer, userId: string) => {
+  socket.on('block-user', ({ userId: targetUserId }: { userId: string }) => {
+    console.log(`Received block-user event for targetUserId: ${targetUserId} from admin: ${userId}`);
+    console.log('Current userSocketMap:', userSocketMap);
+
+    const targetSocketId = userSocketMap[targetUserId];
+
+    if (targetSocketId) {
+      console.log(`Emitting user-blocked event to socket: ${targetSocketId} for user: ${targetUserId}`);
+      io.to(targetSocketId).emit('user-blocked');
+    } else {
+      console.error(`No socket found for user: ${targetUserId} in userSocketMap`);
+      socket.emit('error', {
+        message: `No socket found for user ${targetUserId}`,
+        code: 'USER_NOT_FOUND',
+      });
+    }
+  });
 };
 
 // Chat-related event handlers
@@ -565,26 +588,6 @@ const incrementDriverCancelCount = async (driverId: string) => {
   }
 };
 
-// User block event handlers
-const setupUserBlockEvents = (socket: AuthenticatedSocket, io: SocketIOServer, userId: string) => {
-  socket.on("block-user", ({ userId: targetUserId }: { userId: string }) => {
-    console.log(`Blocking user: ${targetUserId}`);
-    const targetSocketId = userSocketMap[targetUserId];
-    
-    if (targetSocketId) {
-      io.to(targetSocketId).emit("user-blocked");
-      console.log(`User-blocked event emitted to ${targetUserId}`);
-    } else {
-      console.error(`No socket found for user ${targetUserId}`);
-      socket.emit("error", {
-        message: `No socket found for user ${targetUserId}`,
-        code: "USER_NOT_FOUND",
-      });
-    }
-  });
-};
-
-// Disconnect event handlers
 const setupDisconnectEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
   socket.on("disconnect", async () => {
     console.log(`${role} disconnected: ${userId}`);
