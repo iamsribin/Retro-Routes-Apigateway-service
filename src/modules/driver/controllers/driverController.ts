@@ -159,7 +159,7 @@ export default class DriverAuthController{
         try {
           const operation = "get-driver-profile";
           const {id} = req.params
-          console.log("id ===", id);
+          console.log("get-driver-profile id ===", id);
           
           const response = await driverRabbitMqClient.produce(id,operation);
           console.log("response==",response);

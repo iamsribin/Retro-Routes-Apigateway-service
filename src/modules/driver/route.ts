@@ -2,7 +2,9 @@ import express from "express";
 import upload from "../../middleware/multer";
 import driverAuthController from "./controllers/authController";
 import DriverController from "./controllers/driverController";
+import BookingController from "../booking/controller";
 
+const bookingController = new BookingController()
 
 const publicDriverRoute = express.Router();
 const protectedDriverRoute = express.Router();
@@ -76,5 +78,6 @@ publicDriverRoute.post(
 );
 
 publicDriverRoute.get("/getDriverDetails/:id",driverController.fetchDriverDetails)
+protectedDriverRoute.get("/getBookingHistory/:id",bookingController.fetchDriverBookingList)
 
 export { publicDriverRoute, protectedDriverRoute };

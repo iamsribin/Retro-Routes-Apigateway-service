@@ -1,3 +1,4 @@
+// api-gateway code
 import { Server as HttpServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
@@ -82,8 +83,8 @@ interface RideRequestData {
   price: number;
   customer: { name: string; location: [number, number]; rating?: number };
   vehicleModel: string;
-  bookingId?: string;
-  timeout?: number;
+  bookingId: string;
+  timeout: number;
   booking: Booking;
 }
 
@@ -101,10 +102,8 @@ export const setupSocketIO = (server: HttpServer): SocketIOServer => {
 
   console.log(`Socket.IO initialized with CORS origin: ${process.env.CORS_ORIGIN}`);
 
-  // Authentication middleware
   io.use(authenticateSocket);
 
-  // Handle socket connections
   io.on("connection", (socket: AuthenticatedSocket) => {
     handleSocketConnection(socket, io);
   });
@@ -112,7 +111,6 @@ export const setupSocketIO = (server: HttpServer): SocketIOServer => {
   return io;
 };
 
-// Refresh token using AuthClient
 const refreshTokenWithAuthClient = (refreshToken: string): Promise<Tokens> => {
   return new Promise((resolve, reject) => {
     AuthClient.RefreshToken({ token: refreshToken }, (err: any, result: Tokens) => {
@@ -122,53 +120,52 @@ const refreshTokenWithAuthClient = (refreshToken: string): Promise<Tokens> => {
   });
 };
 
-// Authenticate socket connection
 const authenticateSocket = async (socket: AuthenticatedSocket, next: (err?: Error) => void) => {
   const { token, refreshToken } = socket.handshake.query as { token: string; refreshToken: string };
 
   if (!token) {
-    console.error('Authentication error: Missing token');
-    return next(new Error('Authentication error: Token missing'));
+    console.error("Authentication error: Missing token");
+    return next(new Error("Authentication error: Token missing"));
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       clientId: string;
-      role: 'User' | 'Driver' | 'Admin';
+      role: "User" | "Driver" | "Admin";
     };
     socket.decoded = decoded;
     console.log(`Authenticated ${decoded.role}: ${decoded.clientId}`);
     return next();
   } catch (err) {
     if (!refreshToken) {
-      console.error('Authentication error: Invalid token, no refresh token');
-      return next(new Error('Authentication error: Invalid token'));
+      console.error("Authentication error: Invalid token, no refresh token");
+      return next(new Error("Authentication error: Invalid token"));
     }
 
     try {
       const result = await refreshTokenWithAuthClient(refreshToken);
-      socket.emit('tokens-updated', {
+      socket.emit("tokens-updated", {
         token: result.accessToken,
         refreshToken: result.refreshToken,
       });
 
       const decoded = jwt.verify(result.accessToken, process.env.JWT_SECRET as string) as {
         clientId: string;
-        role: 'User' | 'Driver' | 'Admin';
+        role: "User" | "Driver" | "Admin";
       };
       socket.decoded = decoded;
       console.log(`Token refreshed for ${decoded.role}: ${decoded.clientId}`);
       return next();
     } catch (error) {
-      console.error('Authentication error: Token refresh failed', error);
-      return next(new Error('Authentication error: Token refresh failed'));
+      console.error("Authentication error: Token refresh failed", error);
+      return next(new Error("Authentication error: Token refresh failed"));
     }
   }
 };
-// Handle socket connection and events
+
 const handleSocketConnection = (socket: AuthenticatedSocket, io: SocketIOServer) => {
   if (!socket.decoded) {
-    console.error('Missing decoded token, disconnecting');
+    console.error("Missing decoded token, disconnecting");
     socket.disconnect();
     return;
   }
@@ -176,48 +173,47 @@ const handleSocketConnection = (socket: AuthenticatedSocket, io: SocketIOServer)
   const { clientId: userId, role } = socket.decoded;
   console.log(`${role} connected: ${userId}`);
 
-  // Register user/admin in socket map
-  if (userId !== 'undefined') {
+  if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
-    io.emit('getOnlineUsers', Object.keys(userSocketMap));
-    console.log('Updated userSocketMap:', userSocketMap);
+    console.log(`Updated userSocketMap: ${JSON.stringify(userSocketMap)}`);
   }
 
-  // Join appropriate room
   socket.join(`${role.toLowerCase()}:${userId}`);
 
-  // Set up event listeners
+  socket.on("register", (data: { userId: string; role: string }) => {
+    if (data.userId && data.userId !== "undefined") {
+      userSocketMap[data.userId] = socket.id;
+      console.log(`Re-registered ${data.role} ${data.userId} in userSocketMap: ${JSON.stringify(userSocketMap)}`);
+    }
+  });
+
   setupChatEvents(socket, io, role, userId);
   setupDriverEvents(socket, io, role, userId);
   setupRideRequestEvents(socket, io, role, userId);
-  if (role === 'Admin') {
+  if (role === "Admin") {
     setupAdminEvents(socket, io, userId);
   }
   setupDisconnectEvents(socket, io, role, userId);
 };
 
-// Admin-specific event handlers
 const setupAdminEvents = (socket: AuthenticatedSocket, io: SocketIOServer, userId: string) => {
-  socket.on('block-user', ({ userId: targetUserId }: { userId: string }) => {
+  socket.on("block-user", ({ userId: targetUserId }: { userId: string }) => {
     console.log(`Received block-user event for targetUserId: ${targetUserId} from admin: ${userId}`);
-    console.log('Current userSocketMap:', userSocketMap);
-
     const targetSocketId = userSocketMap[targetUserId];
 
     if (targetSocketId) {
       console.log(`Emitting user-blocked event to socket: ${targetSocketId} for user: ${targetUserId}`);
-      io.to(targetSocketId).emit('user-blocked');
+      io.to(targetSocketId).emit("user-blocked");
     } else {
       console.error(`No socket found for user: ${targetUserId} in userSocketMap`);
-      socket.emit('error', {
+      socket.emit("error", {
         message: `No socket found for user ${targetUserId}`,
-        code: 'USER_NOT_FOUND',
+        code: "USER_NOT_FOUND",
       });
     }
   });
 };
 
-// Chat-related event handlers
 const setupChatEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
   socket.on("join chat", (room: string) => {
     if (!room) {
@@ -232,7 +228,7 @@ const setupChatEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: 
   socket.on("new message", async (message: any) => {
     console.log("New message received:", message);
     const chatId = message.chatId?._id || message.chatId;
-    
+
     if (!chatId) {
       console.error("Missing chat ID");
       socket.emit("error", { message: "Chat ID is missing", code: "MISSING_CHAT_ID" });
@@ -249,19 +245,15 @@ const setupChatEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: 
   });
 };
 
-// Driver-related event handlers
 const setupDriverEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
   socket.on("driverLocation", async ({ latitude, longitude }: Coordinates) => {
     if (role !== "Driver") {
       socket.emit("error", { message: "Unauthorized", code: "UNAUTHORIZED" });
       return;
     }
-
     console.log("Driver location update:", { latitude, longitude });
-
     try {
       await updateDriverLocation(userId, { latitude, longitude });
-      socket.emit("location-updated", { status: "success", latitude, longitude });
     } catch (error) {
       console.error("Error updating driver location:", error);
       socket.emit("error", { message: "Failed to update location", code: "LOCATION_UPDATE_FAILED" });
@@ -269,7 +261,6 @@ const setupDriverEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role
   });
 };
 
-// Update driver location in Redis
 const updateDriverLocation = async (driverId: string, coordinates: Coordinates) => {
   const driverDetailsKey = `onlineDriver:details:${driverId}`;
   const isAlreadyOnline = await redisClient.exists(driverDetailsKey);
@@ -289,7 +280,6 @@ const updateDriverLocation = async (driverId: string, coordinates: Coordinates) 
   });
 };
 
-// Ride request event handlers
 const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
   socket.on("requestRide", async (rideData: {
     pickupLocation: { address: string; latitude: number; longitude: number };
@@ -304,13 +294,16 @@ const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer,
     try {
       await processRideRequest(socket, io, userId, rideData);
     } catch (error) {
-      console.error("Error processing ride request:", error);
-      socket.emit("error", { message: "Failed to create ride", code: "RIDE_REQUEST_FAILED" });
+      console.error(`Error processing ride request for user ${userId}:`, error);
+      socket.emit("rideStatus", {
+        status: "Failed",
+        message: "Failed to create ride",
+        code: "RIDE_REQUEST_FAILED",
+      });
     }
   });
 };
 
-// Process ride request
 const processRideRequest = async (
   socket: AuthenticatedSocket,
   io: SocketIOServer,
@@ -329,6 +322,7 @@ const processRideRequest = async (
 
   if (!drivers.length) {
     io.to(`user:${userId}`).emit("rideStatus", {
+      ride_id: "unknown",
       status: "Failed",
       message: "No drivers available",
       code: "NO_DRIVERS_AVAILABLE",
@@ -346,7 +340,7 @@ const processRideRequest = async (
     "create-booking"
   ) as BookingResponse;
 
-  if (ride.status === "Failed") {
+  if (ride.status === "Failed" || !ride.data.booking?.ride_id) {
     io.to(`user:${userId}`).emit("rideStatus", {
       ride_id: ride.data.booking?.ride_id || "unknown",
       status: "Failed",
@@ -360,7 +354,6 @@ const processRideRequest = async (
   await handleDriverRideRequests(socket, io, userId, ride, rideData, drivers, stopSignal);
 };
 
-// Handle ride requests to drivers
 const handleDriverRideRequests = async (
   socket: AuthenticatedSocket,
   io: SocketIOServer,
@@ -385,7 +378,6 @@ const handleDriverRideRequests = async (
 
     if (accepted) {
       stopSignal.stop = true;
-      await handleAcceptedRide(socket, io, userId, driver, ride, rideRequestData);
       return;
     } else {
       await incrementDriverCancelCount(driver.driverId);
@@ -397,16 +389,15 @@ const handleDriverRideRequests = async (
       { id: ride.data.booking.id, action: "Cancelled" },
       "update-booking-status"
     );
-    socket.emit("rideStatus", {
+    io.to(`user:${userId}`).emit("rideStatus", {
       ride_id: ride.data.booking.ride_id,
       status: "Failed",
-      message: "No driver accepted",
+      message: "No driver accepted the ride",
       code: "NO_DRIVER_ACCEPTED",
     });
   }
 };
 
-// Create ride request data
 const createRideRequestData = (
   userId: string,
   ride: BookingResponse,
@@ -455,7 +446,6 @@ const createRideRequestData = (
   },
 });
 
-// Send ride request to driver
 const sendRideRequest = (
   io: SocketIOServer,
   driverId: string,
@@ -465,7 +455,7 @@ const sendRideRequest = (
   return new Promise((resolve) => {
     const timeoutDuration = 30000;
     const enrichedRideData = { ...rideData, timeout: timeoutDuration, bookingId: rideData.ride_id };
-    
+
     console.log(`Sending ride request to driver ${driverId}:`, enrichedRideData);
     io.to(`driver:${driverId}`).emit("rideRequest", enrichedRideData);
 
@@ -477,17 +467,17 @@ const sendRideRequest = (
       console.error(`Driver socket not found for driver ${driverId}`);
       return resolve(false);
     }
-
+     
     const responseHandler = async (response: { ride_id: string; accepted: boolean }) => {
       console.log(`Received rideResponse:${rideData.ride_id} from driver ${driverId}:`, response);
-      
+
       if (response.ride_id !== rideData.ride_id) return;
 
       clearTimeout(timeout);
       driverSocket.off(`rideResponse:${rideData.ride_id}`, responseHandler);
 
       if (response.accepted) {
-        await handleRideAcceptance(io, driverId, response.ride_id);
+        await handleRideAcceptance(io, driverId, response.ride_id, rideData.userId);
       }
 
       resolve(response.accepted);
@@ -505,14 +495,15 @@ const sendRideRequest = (
   });
 };
 
-// Handle ride acceptance
-const handleRideAcceptance = async (io: SocketIOServer, driverId: string, rideId: string) => {
+const handleRideAcceptance = async (io: SocketIOServer, driverId: string, rideId: string, userId: string) => {
   try {
     const position = await redisClient.geoPos("driver:locations", driverId);
-    const driverCoordinates = position ? {
-      latitude: position[0]?.latitude,
-      longitude: position[0]?.longitude,
-    } : null;
+    const driverCoordinates = position
+      ? {
+          latitude: position[0]?.latitude,
+          longitude: position[0]?.longitude,
+        }
+      : null;
 
     const data = {
       ride_id: rideId,
@@ -522,63 +513,41 @@ const handleRideAcceptance = async (io: SocketIOServer, driverId: string, rideId
     };
 
     const bookingResponse = await bookingRabbitMqClient.produce(data, "accepted-booking") as BookingInterface;
-    console.log(`Booking status updated to Accepted for ride`, bookingResponse);
+    console.log(`Booking status updated to Accepted for ride ${rideId}`, bookingResponse);
 
-    const targetSocketId = userSocketMap[bookingResponse?.data.user_id];
+    const targetSocketId = userSocketMap[userId];
     if (targetSocketId) {
-      io.to(targetSocketId).emit("accepted-ride", bookingResponse);
-      console.log(`Accepted-ride event emitted to ${bookingResponse.data.user_id}`);
+      io.to(targetSocketId).emit("rideStatus", {
+        ride_id: bookingResponse.data.ride_id,
+        status: "Accepted",
+        message: "Your ride has been accepted by a driver!",
+        driverId,
+        driverCoordinates,
+        booking: bookingResponse.data,
+      });
+      console.log(`Emitted rideStatus (Accepted) to user ${userId} on socket ${targetSocketId}`);
     } else {
-      console.error(`No socket found for user ${bookingResponse.data.user_id}`);
+      console.error(`No socket found for user ${userId} in userSocketMap: ${JSON.stringify(userSocketMap)}`);
       io.to(`driver:${driverId}`).emit("error", {
-        message: `No socket found for user ${bookingResponse.data.user_id}`,
+        message: `No socket found for user ${userId}`,
         code: "USER_NOT_FOUND",
       });
     }
   } catch (error) {
-    console.error("Error updating booking status:", error);
+    console.error(`Error updating booking status for ride ${rideId}:`, error);
     io.to(`driver:${driverId}`).emit("error", {
       message: "Failed to update booking status",
       code: "BOOKING_STATUS_UPDATE_FAILED",
     });
+    io.to(`user:${userId}`).emit("rideStatus", {
+      ride_id: rideId,
+      status: "Failed",
+      message: "Failed to process ride acceptance",
+      code: "RIDE_ACCEPTANCE_FAILED",
+    });
   }
 };
 
-// Handle accepted ride
-const handleAcceptedRide = async (
-  socket: AuthenticatedSocket,
-  io: SocketIOServer,
-  userId: string,
-  driver: { driverId: string; distance: number; rating: number; cancelCount: number },
-  ride: BookingResponse,
-  rideRequestData: RideRequestData
-) => {
-  const driverLocation = await redisClient.geoPos("driver:locations", driver.driverId);
-  const driverDetailsKey = `onlineDriver:details:${driver.driverId}`;
-  const driverDetailsRaw = await redisClient.get(driverDetailsKey);
-  const driverDetails = driverDetailsRaw ? JSON.parse(driverDetailsRaw) : null;
-
-  const driverCoordinates = driverLocation ? {
-    longitude: driverLocation[0],
-    latitude: driverLocation[1],
-  } : null;
-
-  io.to(`user:${userId}`).emit("rideStatus", {
-    ride_id: ride.data.booking.ride_id,
-    status: "Accepted",
-    message: "Your ride has been accepted by a driver!",
-    driverId: driver.driverId,
-    driverLocation: driverCoordinates,
-    driverDetails: driverDetails || {
-      id: driver.driverId,
-      name: "Unknown Driver",
-      rating: driver.rating,
-    },
-    booking: rideRequestData.booking,
-  });
-};
-
-// Increment driver cancellation count
 const incrementDriverCancelCount = async (driverId: string) => {
   try {
     await driverRabbitMqClient.produce({ id: driverId }, "update-driver-cancel-count");
@@ -591,11 +560,10 @@ const incrementDriverCancelCount = async (driverId: string) => {
 const setupDisconnectEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
   socket.on("disconnect", async () => {
     console.log(`${role} disconnected: ${userId}`);
-    
-    if (userId !== "undefined") {
+
+    if (userId && userId !== "undefined") {
       delete userSocketMap[userId];
-      io.emit("getOnlineUsers", Object.keys(userSocketMap));
-      console.log("Updated userSocketMap after disconnect:", userSocketMap);
+      console.log(`Updated userSocketMap after disconnect: ${JSON.stringify(userSocketMap)}`);
     }
 
     if (role === "Driver") {
@@ -603,7 +571,7 @@ const setupDisconnectEvents = (socket: AuthenticatedSocket, io: SocketIOServer, 
         await redisClient.del(`onlineDriver:details:${userId}`);
         await redisClient.zRem("driver:locations", userId);
       } catch (error) {
-        console.error("Error handling driver disconnect:", error);
+        console.error(`Error handling driver disconnect for ${userId}:`, error);
       }
     }
   });

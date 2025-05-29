@@ -36,11 +36,8 @@ class RabbitMqClient{
             ]);
             this.produceChannel = produceChannel;
             this.consumerChannel = consumerChannel;
-            const {queue:replyQueueName} = await this.consumerChannel.assertQueue(
-                'booking_queue', {
-                    durable: true,       
-                    exclusive: false,      
-                  })
+            const {queue:replyQueueName} = await this.consumerChannel.assertQueue("",{exclusive:false})
+
             this.eventEmitter=new EventEmitter()
             this.producer= new Producer(
                 this.produceChannel,

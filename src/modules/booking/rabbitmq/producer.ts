@@ -18,7 +18,7 @@ export default class Producer {
       {
         replyTo: this.replyQueueName,
         correlationId: uuid,
-        expiration: 10,
+        expiration: 10000,
         headers: {
           function: operation,
         },
@@ -26,7 +26,7 @@ export default class Producer {
     );
 
     return new Promise((res, rej) => {
-      this.eventEmitter.once(uuid, async (reply) => {
+      this.eventEmitter.once(uuid, async (reply) => {  
         try {
           const replyDataString = Buffer.from(reply.content).toString("utf-8");
           const replyObject = JSON.parse(replyDataString);

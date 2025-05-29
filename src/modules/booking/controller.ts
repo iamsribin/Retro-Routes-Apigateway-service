@@ -15,7 +15,7 @@ export default class BookingController {
       console.log("entgere", operation);
       const data = (await bookingRabbitMqClient.produce(
         {},
-        operation
+        operation          
       )) as ControllerResponse;
       console.log("get-vehicles-list==", data);
       if (data.message !== "Success") {
@@ -36,6 +36,35 @@ export default class BookingController {
         message: "Failed to register user",
       });
     }
+  }
+
+async fetchDriverBookingList(req: Request, res: Response){
+try {
+  const operation = "get-driver-booking-list"
+        const {id} = req.params
+        console.log("reach get-driver-booking-list",id);
+        
+        const data = (await bookingRabbitMqClient.produce(id,operation)) as any
+        console.log("data====",data);
+        
+      if (data.status === "Failed") {
+        res.status(StatusCode.InternalServerError).json({
+          status: "Failed",
+          data: data?.data,
+        });
+      } else {
+        res.status(StatusCode.Accepted).json({
+          status: "Success",
+          data: data?.data,
+        });      
+      }
+} catch (error) {
+ res.status(StatusCode.InternalServerError).json({
+        status: "Failed",
+        data: "Failed to register user",
+      });
+  
+}
   }
 }
    
