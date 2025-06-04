@@ -13,12 +13,6 @@ import mongoose from "mongoose";
 // Interfaces
 interface BookingResponse {
   data: {
-    nearbyDrivers: Array<{
-      driverId: string;
-      distance: number;
-      rating: number;
-      cancelCount: number;
-    }>;
     booking: { id: string; ride_id: string; status: string; message?: string };
     userPickupCoordinators: { address: string; latitude: number; longitude: number };
     userDropCoordinators: { address: string; latitude: number; longitude: number };
@@ -77,8 +71,8 @@ interface Booking {
 interface RideRequestData {
   ride_id: string;
   userId: string;
-  pickup: string;
-  dropoff: string;
+  pickupCoordinators: { address: string; latitude: number; longitude: number };
+  dropOffCoordinators: { address: string; latitude: number; longitude: number };
   distance: string;
   price: number;
   customer: { name: string; location: [number, number]; rating?: number };
@@ -283,7 +277,7 @@ const updateDriverLocation = async (driverId: string, coordinates: Coordinates) 
 const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
   socket.on("requestRide", async (rideData: {
     pickupLocation: { address: string; latitude: number; longitude: number };
-    dropoffLocation: { address: string; latitude: number; longitude: number };
+    dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
   }) => {
     if (role !== "User") {
@@ -310,7 +304,7 @@ const processRideRequest = async (
   userId: string,
   rideData: {
     pickupLocation: { address: string; latitude: number; longitude: number };
-    dropoffLocation: { address: string; latitude: number; longitude: number };
+    dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
   }
 ) => {
@@ -334,7 +328,7 @@ const processRideRequest = async (
     {
       userId,
       pickupLocation: rideData.pickupLocation,
-      dropoffLocation: rideData.dropoffLocation,
+      dropoffLocation: rideData.dropOffLocation,
       vehicleModel: rideData.vehicleModel,
     },
     "create-booking"
@@ -361,7 +355,7 @@ const handleDriverRideRequests = async (
   ride: BookingResponse,
   rideData: {
     pickupLocation: { address: string; latitude: number; longitude: number };
-    dropoffLocation: { address: string; latitude: number; longitude: number };
+    dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
   },
   drivers: Array<{ driverId: string; distance: number; rating: number; cancelCount: number }>,
@@ -403,14 +397,14 @@ const createRideRequestData = (
   ride: BookingResponse,
   rideData: {
     pickupLocation: { address: string; latitude: number; longitude: number };
-    dropoffLocation: { address: string; latitude: number; longitude: number };
+    dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
   }
 ): RideRequestData => ({
   ride_id: ride.data.booking.ride_id,
   userId,
-  pickup: ride.data.userPickupCoordinators.address,
-  dropoff: ride.data.userDropCoordinators.address,
+  pickupCoordinators: rideData.pickupLocation,
+  dropOffCoordinators: rideData.dropOffLocation,
   distance: ride.data.distance,
   price: ride.data.price,
   customer: {
