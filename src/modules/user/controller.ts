@@ -66,9 +66,11 @@ export default class UserController {
     try {
       await UserService.CheckLoginUser(req.body, (err: Error | null, result: AuthResponse) => {
         if (err) {
+          
           res.status(StatusCode.BadRequest).json({ message: err.message });
           return;
         }
+        console.log("result==",result);
         res.status(StatusCode.Created).json(result);
       });
     } catch (error) {

@@ -83,7 +83,7 @@ message CheckLoginUserResponse {
     string refreshToken = 5;
     string _id = 4;
     string role = 6;
-
+    string mobile = 7;
 }
 
 

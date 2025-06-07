@@ -13,11 +13,14 @@ import mongoose from "mongoose";
 // Interfaces
 interface BookingResponse {
   data: {
-    booking: { id: string; ride_id: string; status: string; message?: string };
+    userName:string;
+    booking: { id: string; ride_id: string; status: string;};
     userPickupCoordinators: { address: string; latitude: number; longitude: number };
     userDropCoordinators: { address: string; latitude: number; longitude: number };
     distance: string;
     price: number;
+    duration:number;
+    pin:number;
     message?: string;
   };
   status?: string;
@@ -64,6 +67,7 @@ interface Booking {
   vehicleModel: string;
   price: number;
   status: string;
+  pin:number;
   _id: string;
   date: string;
 }
@@ -71,6 +75,7 @@ interface Booking {
 interface RideRequestData {
   ride_id: string;
   userId: string;
+  userMobile: string;
   pickupCoordinators: { address: string; latitude: number; longitude: number };
   dropOffCoordinators: { address: string; latitude: number; longitude: number };
   distance: string;
@@ -253,6 +258,19 @@ const setupDriverEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role
       socket.emit("error", { message: "Failed to update location", code: "LOCATION_UPDATE_FAILED" });
     }
   });
+
+  socket.on("driverOffline", async () => {
+    if (role !== "Driver") {
+      socket.emit("error", { message: "Unauthorized", code: "UNAUTHORIZED" });
+      return;
+    }
+    console.log(`Driver ${userId} is going offline`);
+    try {
+      await removeDriverFromCache(userId);
+    } catch (error) {
+      socket.emit("error", { message: "Failed to remove driver from cache", code: "DRIVER_OFFLINE_FAILED" });
+    }
+  });
 };
 
 const updateDriverLocation = async (driverId: string, coordinates: Coordinates) => {
@@ -264,6 +282,9 @@ const updateDriverLocation = async (driverId: string, coordinates: Coordinates) 
       { id: driverId },
       "get-online-driver"
     ) as any;
+
+    console.log("get-online-driver:",driverDetails.data);
+    
     await redisClient.set(driverDetailsKey, JSON.stringify(driverDetails.data));
   }
 
@@ -272,6 +293,7 @@ const updateDriverLocation = async (driverId: string, coordinates: Coordinates) 
     latitude: coordinates.latitude,
     member: driverId,
   });
+  
 };
 
 const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
@@ -279,7 +301,21 @@ const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer,
     pickupLocation: { address: string; latitude: number; longitude: number };
     dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
+    duration: string;
+    userName:string;
+    isScheduled:boolean;
+    scheduledDateTime:number;
+    estimatedPrice: number;
+    estimatedDuration: number;
+    distanceInfo:{
+      distance: number;
+      distanceInKm: number;
+    }
+    mobile:string;
   }) => {
+
+    console.log("requestRide==",rideData);
+    
     if (role !== "User") {
       socket.emit("error", { message: "Unauthorized", code: "UNAUTHORIZED" });
       return;
@@ -306,7 +342,17 @@ const processRideRequest = async (
     pickupLocation: { address: string; latitude: number; longitude: number };
     dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
-  }
+    userName:string;
+    isScheduled:boolean;
+    scheduledDateTime:number;
+    estimatedPrice: number;
+    estimatedDuration: number;
+    distanceInfo:{
+      distance: number;
+      distanceInKm: number;
+    }
+    mobile:string;
+  },
 ) => {
   const drivers = await findNearbyDrivers(
     rideData.pickupLocation.latitude,
@@ -324,12 +370,20 @@ const processRideRequest = async (
     return;
   }
 
+  console.log("000000000",rideData);
+  
+
   const ride = await bookingRabbitMqClient.produce(
     {
       userId,
+      userName:rideData.userName,
+      userMobile: rideData.mobile,
       pickupLocation: rideData.pickupLocation,
       dropoffLocation: rideData.dropOffLocation,
       vehicleModel: rideData.vehicleModel,
+      duration:rideData.estimatedDuration,
+      price: rideData.estimatedPrice,
+      distanceInfo:rideData.distanceInfo
     },
     "create-booking"
   ) as BookingResponse;
@@ -357,6 +411,7 @@ const handleDriverRideRequests = async (
     pickupLocation: { address: string; latitude: number; longitude: number };
     dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
+    mobile:string;
   },
   drivers: Array<{ driverId: string; distance: number; rating: number; cancelCount: number }>,
   stopSignal: { stop: boolean }
@@ -368,6 +423,8 @@ const handleDriverRideRequests = async (
     }
 
     const rideRequestData: RideRequestData = createRideRequestData(userId, ride, rideData);
+    console.log("rideRequestData for driver", rideRequestData);
+    
     const accepted = await sendRideRequest(io, driver.driverId, rideRequestData, stopSignal);
 
     if (accepted) {
@@ -399,6 +456,7 @@ const createRideRequestData = (
     pickupLocation: { address: string; latitude: number; longitude: number };
     dropOffLocation: { address: string; latitude: number; longitude: number };
     vehicleModel: string;
+    mobile:string
   }
 ): RideRequestData => ({
   ride_id: ride.data.booking.ride_id,
@@ -408,16 +466,16 @@ const createRideRequestData = (
   distance: ride.data.distance,
   price: ride.data.price,
   customer: {
-    name: "Customer",
+    name: ride.data.userName,
     location: [
       ride.data.userPickupCoordinators.longitude,
       ride.data.userPickupCoordinators.latitude,
     ],
-    rating: 4.8,
   },
   vehicleModel: rideData.vehicleModel,
   bookingId: ride.data.booking.ride_id,
   timeout: 30000,
+  userMobile:rideData.mobile,
   booking: {
     ride_id: ride.data.booking.ride_id,
     user_id: userId,
@@ -434,6 +492,7 @@ const createRideRequestData = (
     distance: ride.data.distance,
     vehicleModel: rideData.vehicleModel,
     price: ride.data.price,
+    pin:ride.data.pin,
     status: ride.data.booking.status,
     _id: ride.data.booking.id,
     date: new Date().toISOString(),
@@ -472,6 +531,8 @@ const sendRideRequest = (
 
       if (response.accepted) {
         await handleRideAcceptance(io, driverId, response.ride_id, rideData.userId);
+      }else{
+        await incrementDriverCancelCount(driverId);
       }
 
       resolve(response.accepted);
@@ -489,8 +550,14 @@ const sendRideRequest = (
   });
 };
 
-const handleRideAcceptance = async (io: SocketIOServer, driverId: string, rideId: string, userId: string) => {
+const handleRideAcceptance = async (
+  io: SocketIOServer,
+  driverId: string,
+  rideId: string,
+  userId: string
+) => {
   try {
+
     const position = await redisClient.geoPos("driver:locations", driverId);
     const driverCoordinates = position
       ? {
@@ -499,16 +566,22 @@ const handleRideAcceptance = async (io: SocketIOServer, driverId: string, rideId
         }
       : null;
 
+    const driverDetailsKey = `onlineDriver:details:${driverId}`;
+    const driverDetailsRaw = await redisClient.get(driverDetailsKey);
+    const driverDetails = driverDetailsRaw ? JSON.parse(driverDetailsRaw) : null;
+
     const data = {
       ride_id: rideId,
       action: "Accepted",
       driver_id: driverId,
       driverCoordinates,
+      driverDetails
     };
 
     const bookingResponse = await bookingRabbitMqClient.produce(data, "accepted-booking") as BookingInterface;
     console.log(`Booking status updated to Accepted for ride ${rideId}`, bookingResponse);
 
+    // Emit to user
     const targetSocketId = userSocketMap[userId];
     if (targetSocketId) {
       io.to(targetSocketId).emit("rideStatus", {
@@ -518,10 +591,16 @@ const handleRideAcceptance = async (io: SocketIOServer, driverId: string, rideId
         driverId,
         driverCoordinates,
         booking: bookingResponse.data,
+        driverDetails: driverDetails || {
+          id: driverId,
+          name: "Unknown Driver",
+          rating: 0,
+        },
       });
+
       console.log(`Emitted rideStatus (Accepted) to user ${userId} on socket ${targetSocketId}`);
     } else {
-      console.error(`No socket found for user ${userId} in userSocketMap: ${JSON.stringify(userSocketMap)}`);
+      console.error(`No socket found for user ${userId} in userSocketMap`);
       io.to(`driver:${driverId}`).emit("error", {
         message: `No socket found for user ${userId}`,
         code: "USER_NOT_FOUND",
@@ -539,6 +618,17 @@ const handleRideAcceptance = async (io: SocketIOServer, driverId: string, rideId
       message: "Failed to process ride acceptance",
       code: "RIDE_ACCEPTANCE_FAILED",
     });
+  }
+};
+
+const removeDriverFromCache = async (driverId: string) => {
+  try {
+    await redisClient.del(`onlineDriver:details:${driverId}`);
+    await redisClient.zRem("driver:locations", driverId);
+    console.log(`Driver ${driverId} removed from Redis cache`);
+  } catch (error) {
+    console.error(`Error removing driver ${driverId} from Redis cache:`, error);
+    throw error;
   }
 };
 
@@ -562,11 +652,10 @@ const setupDisconnectEvents = (socket: AuthenticatedSocket, io: SocketIOServer, 
 
     if (role === "Driver") {
       try {
-        await redisClient.del(`onlineDriver:details:${userId}`);
-        await redisClient.zRem("driver:locations", userId);
+        await removeDriverFromCache(userId);
       } catch (error) {
         console.error(`Error handling driver disconnect for ${userId}:`, error);
       }
     }
   });
-};
+}
