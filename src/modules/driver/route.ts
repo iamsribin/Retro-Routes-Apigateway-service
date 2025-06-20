@@ -77,7 +77,21 @@ publicDriverRoute.post(
   AuthController.postResubmissionData
 );
 
-publicDriverRoute.get("/getDriverDetails/:id",driverController.fetchDriverDetails)
-protectedDriverRoute.get("/getBookingHistory/:id",bookingController.fetchDriverBookingList)
+protectedDriverRoute.get("/getDriverDetails",driverController.fetchDriverDetails)
+protectedDriverRoute.post("/updateDriverDetails/:id",upload.fields([
+    { name: "aadharFrontImage", maxCount: 1 },
+    { name: "aadharBackImage", maxCount: 1 },
+    { name: "licenseFrontImage", maxCount: 1 },
+    { name: "licenseBackImage", maxCount: 1 },
+    { name: "rcFrontImage", maxCount: 1 },
+    { name: "rcBackImage", maxCount: 1 },
+    { name: "carFrontImage", maxCount: 1 },
+    { name: "carBackImage", maxCount: 1 },
+    { name: "insuranceImage", maxCount: 1 },
+    { name: "pollutionImage", maxCount: 1 },
+    { name: "driverImage", maxCount: 1 },
+  ]),driverController.updateDriverDetails);
+protectedDriverRoute.get("/getMyTrips",bookingController.fetchDriverBookingList)
+protectedDriverRoute.get("/getMyTripDetails/:id",bookingController.fetchDriverBookingDetails)
 
 export { publicDriverRoute, protectedDriverRoute };

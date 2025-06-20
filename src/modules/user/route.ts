@@ -12,6 +12,9 @@ publicUserRoute.post("/resendOtp", controller.resendOtp);
 publicUserRoute.post("/checkLoginUser", controller.checkLoginUser);
 publicUserRoute.post("/checkGoogleLoginUser", controller.checkGoogleLoginUser);
 publicUserRoute.get("/vehicles", bookingController.fetchVehicles);
+// publicUserRoute.get("/profile/:id",controller.fetchUserProfile);
+
+// publicUserRoute.get("/bookings/:id",bookingController.fetchUserBookingList);
 
 // Protected routes 
 const protectedUserRoute = express.Router();

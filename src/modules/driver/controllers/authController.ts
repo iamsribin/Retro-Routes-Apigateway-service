@@ -138,15 +138,22 @@ export default class driverAuthController {
       let rcBackImageUrl = "";
       let carFrondImageUrl = "";
       let carBackImageUrl = "";
-      if (files) {
-        [rcFrondImageUrl, rcBackImageUrl, carFrondImageUrl, carBackImageUrl] = await Promise.all([
-          uploadToS3(files["rcFrontImage"][0]),
-          uploadToS3(files["rcBackImage"][0]),
-          uploadToS3(files["carFrontImage"][0]),
-          uploadToS3(files["carSideImage"][0]),
-        ]);
-        console.log(rcFrondImageUrl, rcBackImageUrl, carFrondImageUrl, carBackImageUrl);
-      }
+      // if (files) {
+      //   [rcFrondImageUrl, rcBackImageUrl, carFrondImageUrl, carBackImageUrl] = await Promise.all([
+      //     uploadToS3(files["rcFrontImage"][0]),
+      //     uploadToS3(files["rcBackImage"][0]),
+      //     uploadToS3(files["carFrontImage"][0]),
+      //     uploadToS3(files["carSideImage"][0]),
+      //   ]);
+      //   console.log(rcFrondImageUrl, rcBackImageUrl, carFrondImageUrl, carBackImageUrl);
+      // }
+
+  rcFrondImageUrl= 'https://retro-routes-store.s3.eu-north-1.amazonaws.com/1750057447143';
+  rcBackImageUrl= 'https://retro-routes-store.s3.eu-north-1.amazonaws.com/1750057447145';
+  carFrondImageUrl= 'https://retro-routes-store.s3.eu-north-1.amazonaws.com/1750057447150';
+  carBackImageUrl ='https://retro-routes-store.s3.eu-north-1.amazonaws.com/1750057447151';
+
+
       const operation = "vehicle-image&RC-update";
       const response: Message = await driverRabbitMqClient.produce(
         { ...req.body, ...req.query, rcFrondImageUrl, rcBackImageUrl, carFrondImageUrl, carBackImageUrl },
@@ -240,8 +247,7 @@ export default class driverAuthController {
       console.log("Sending to driver service:", payload);
       const operation = "post-resubmission-documents";
       const response = await driverRabbitMqClient.produce({
-        driverId: '681789b95dc95497e18b5537',
-        driverImage: 'https://retro-routes-store.s3.eu-north-1.amazonaws.com/1746383411059'
+      ...payload
       }, operation);
       console.log("Response from driver service:", response);
       console.log(response);

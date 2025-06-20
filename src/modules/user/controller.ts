@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { UserService } from './config/user.client';
-import { StatusCode } from '../../interfaces/enum';
-import { Message, AuthResponse } from '../../interfaces/interface';
+import { Request, Response } from "express";
+import { UserService } from "./config/user.client";
+import { StatusCode } from "../../interfaces/enum";
+import { Message, AuthResponse } from "../../interfaces/interface";
 
 export default class UserController {
   /**
@@ -9,25 +9,28 @@ export default class UserController {
    */
   async register(req: Request, res: Response): Promise<void> {
     try {
-      const userImage = req.file?.path || '';
+      const userImage = req.file?.path || "";
       const token = req.cookies.otp;
 
       const userData = { ...req.body, userImage, token };
 
-      await UserService.Register(userData, (err: Error | null, result: Message) => {
-        if (err) {
-          const errorMessage = err.message.includes('UNKNOWN:') 
-            ? err.message.split('UNKNOWN: ')[1]
-            : err.message;
+      await UserService.Register(
+        userData,
+        (err: Error | null, result: Message) => {
+          if (err) {
+            const errorMessage = err.message.includes("UNKNOWN:")
+              ? err.message.split("UNKNOWN: ")[1]
+              : err.message;
 
-          res.status(StatusCode.BadRequest).json({ message: errorMessage });
-          return;
+            res.status(StatusCode.BadRequest).json({ message: errorMessage });
+            return;
+          }
+          res.status(StatusCode.Created).json(result);
         }
-        res.status(StatusCode.Created).json(result);
-      });
+      );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ 
-        message: 'Failed to register user' 
+      res.status(StatusCode.InternalServerError).json({
+        message: "Failed to register user",
       });
     }
   }
@@ -37,24 +40,26 @@ export default class UserController {
    */
   async checkUser(req: Request, res: Response): Promise<void> {
     try {
-      await UserService.CheckUser(req.body, (err: Error | null, result: { token: string; message: string }) => {
-        
-        if (err) {
-          res.status(StatusCode.BadRequest).json({ message: err.message });
-          return;
-        }
+      await UserService.CheckUser(
+        req.body,
+        (err: Error | null, result: { token: string; message: string }) => {
+          if (err) {
+            res.status(StatusCode.BadRequest).json({ message: err.message });
+            return;
+          }
 
-        res.cookie('otp', result.token, {
-          httpOnly: true,
-          expires: new Date(Date.now() + 180000),
-          sameSite: 'none',
-          secure: true,
-        });
-        res.status(StatusCode.Created).json(result);
-      });
+          res.cookie("otp", result.token, {
+            httpOnly: true,
+            expires: new Date(Date.now() + 180000),
+            sameSite: "none",
+            secure: true,
+          });
+          res.status(StatusCode.Created).json(result);
+        }
+      );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ 
-        message: 'Failed to check user' 
+      res.status(StatusCode.InternalServerError).json({
+        message: "Failed to check user",
       });
     }
   }
@@ -64,18 +69,20 @@ export default class UserController {
    */
   async checkLoginUser(req: Request, res: Response): Promise<void> {
     try {
-      await UserService.CheckLoginUser(req.body, (err: Error | null, result: AuthResponse) => {
-        if (err) {
-          
-          res.status(StatusCode.BadRequest).json({ message: err.message });
-          return;
+      await UserService.CheckLoginUser(
+        req.body,
+        (err: Error | null, result: AuthResponse) => {
+          if (err) {
+            res.status(StatusCode.BadRequest).json({ message: err.message });
+            return;
+          }
+          console.log("result==", result);
+          res.status(StatusCode.Created).json(result);
         }
-        console.log("result==",result);
-        res.status(StatusCode.Created).json(result);
-      });
+      );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ 
-        message: 'Failed to authenticate user' 
+      res.status(StatusCode.InternalServerError).json({
+        message: "Failed to authenticate user",
       });
     }
   }
@@ -85,24 +92,26 @@ export default class UserController {
    */
   async resendOtp(req: Request, res: Response): Promise<void> {
     try {
-      await UserService.ResendOtp(req.body, (err: Error | null, result: { token: string; message: string }) => {
+      await UserService.ResendOtp(
+        req.body,
+        (err: Error | null, result: { token: string; message: string }) => {
+          if (err) {
+            res.status(StatusCode.BadRequest).json({ message: err.message });
+            return;
+          }
 
-        if (err) {
-          res.status(StatusCode.BadRequest).json({ message: err.message });
-          return;
+          res.cookie("otp", result.token, {
+            httpOnly: true,
+            expires: new Date(Date.now() + 180000),
+            sameSite: "none",
+            secure: true,
+          });
+          res.status(StatusCode.Created).json(result);
         }
-
-        res.cookie('otp', result.token, {
-          httpOnly: true,
-          expires: new Date(Date.now() + 180000),
-          sameSite: 'none',
-          secure: true,
-        });
-        res.status(StatusCode.Created).json(result);
-      });
+      );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ 
-        message: 'Failed to resend OTP' 
+      res.status(StatusCode.InternalServerError).json({
+        message: "Failed to resend OTP",
       });
     }
   }
@@ -112,18 +121,40 @@ export default class UserController {
    */
   async checkGoogleLoginUser(req: Request, res: Response): Promise<void> {
     try {
-      await UserService.CheckGoogleLoginUser(req.body, (err: Error | null, result: AuthResponse) => {
-        if (err) {
-          
-          res.status(StatusCode.BadRequest).json({ message: err.message });
-          return;
+      await UserService.CheckGoogleLoginUser(
+        req.body,
+        (err: Error | null, result: AuthResponse) => {
+          if (err) {
+            res.status(StatusCode.BadRequest).json({ message: err.message });
+            return;
+          }
+          res.status(StatusCode.Created).json(result);
         }
-        res.status(StatusCode.Created).json(result);
-      });
+      );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ 
-        message: 'Failed to authenticate Google login' 
+      res.status(StatusCode.InternalServerError).json({
+        message: "Failed to authenticate Google login",
       });
     }
   }
+
+//   async fetchUserProfile(req: Request, res: Response) {
+//  try {
+//      const {id} = req.params
+//       await UserService.fetchUserProfile(
+//         id,
+//         (err: Error | null, result: any) => {
+//           if (err) {
+//             res.status(StatusCode.BadRequest).json({ message: err.message });
+//             return;
+//           }
+//           res.status(StatusCode.Created).json(result);
+//         }
+//       );
+//     } catch (error) {
+//       res.status(StatusCode.InternalServerError).json({
+//         message: "Failed to authenticate Google login",
+//       });
+//     }
+//   }
 }
