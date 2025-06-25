@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { UserService } from "./config/user.client";
 import { StatusCode } from "../../interfaces/enum";
 import { Message, AuthResponse } from "../../interfaces/interface";
+import uploadToS3 from "../../services/s3";
 
 export default class UserController {
   /**
@@ -136,6 +137,23 @@ export default class UserController {
         message: "Failed to authenticate Google login",
       });
     }
+  }
+
+     uploadChatFile = async(req: Request, res: Response)=>{
+try {
+        const files: any = req.files;
+      let Url = "";
+      if (files) {
+        [Url] = await Promise.all([
+          uploadToS3(files["file"][0]),
+        ]);
+      }
+      console.log("insurance", Url);
+
+      res.status(StatusCode.Accepted).json({message:"success",fileUrl:Url})
+} catch (error) {
+  res.status(StatusCode.InternalServerError).json({message:"Internal Server Error",})
+}
   }
 
 //   async fetchUserProfile(req: Request, res: Response) {

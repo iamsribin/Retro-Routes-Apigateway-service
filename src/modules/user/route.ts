@@ -18,6 +18,8 @@ publicUserRoute.get("/vehicles", bookingController.fetchVehicles);
 
 // Protected routes 
 const protectedUserRoute = express.Router();
+protectedUserRoute.post("/uploadChatFile",upload.fields([{name:"file", maxCount:1}]), controller.uploadChatFile)
+
 // protectedUserRoute.get("/profile", controller.getProfile); 
 // protectedUserRoute.post("/booking", controller.createBooking); 
 

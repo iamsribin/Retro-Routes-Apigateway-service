@@ -98,5 +98,14 @@ export default class BookingController {
     }
   }
 
-  async fetchUserBookingList(req: Request, res: Response) {}
+  async cancelRide(userId: string, ride_id: string) {
+    const data ={
+      userId,
+      ride_id,
+    }    
+        const response = await bookingRabbitMqClient.produce(data, "cancel_ride");
+
+        return response;
+    
+  }
 }

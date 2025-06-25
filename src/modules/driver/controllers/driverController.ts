@@ -280,4 +280,21 @@ updateDriverDetails = async (req: Request, res: Response) => {
       res.status(StatusCode.InternalServerError).json({ message: "Internal Server Error" });
     }
   };
+
+   uploadChatFile = async(req: Request, res: Response)=>{
+try {
+        const files: any = req.files;
+      let Url = "";
+      if (files) {
+        [Url] = await Promise.all([
+          uploadToS3(files["file"][0]),
+        ]);
+      }
+      console.log("insurance", Url);
+
+      res.status(StatusCode.Accepted).json({message:"success",fileUrl:Url})
+} catch (error) {
+  res.status(StatusCode.InternalServerError).json({message:"Internal Server Error",})
+}
+  }
 }

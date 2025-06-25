@@ -93,5 +93,6 @@ protectedDriverRoute.post("/updateDriverDetails/:id",upload.fields([
   ]),driverController.updateDriverDetails);
 protectedDriverRoute.get("/getMyTrips",bookingController.fetchDriverBookingList)
 protectedDriverRoute.get("/getMyTripDetails/:id",bookingController.fetchDriverBookingDetails)
+protectedDriverRoute.post("/uploadChatFile",upload.fields([{name:"file", maxCount:1}]), driverController.uploadChatFile)
 
 export { publicDriverRoute, protectedDriverRoute };

@@ -9,9 +9,9 @@ import driverRabbitMqClient from "../driver/rabbitmq/client";
 import redisClient from "../../config/redis.config";
 import { findNearbyDrivers } from "../../utils/findNearByDrivers";
 import mongoose from "mongoose";
+import BookingController from "../booking/controller"
 
-
-// Interfaces
+const bookingController = new BookingController()
 interface BookingResponse {
   data: {
     userData:{
@@ -128,8 +128,6 @@ export const setupSocketIO = (server: HttpServer): SocketIOServer => {
       credentials: true,
     },
   });
-
-  console.log(`Socket.IO initialized with CORS origin: ${process.env.CORS_ORIGIN}`);
 
   io.use(authenticateSocket);
 
@@ -252,29 +250,31 @@ socket.on("sendMessage", async (data: {
   timestamp: string;
   driverId?: string;
   userId?: string;
+  type: string;
+  fileUrl: string;
 }) => {
   console.log("New chat message received:", data);
   
   try {
-    // Determine who should receive the message
+
     const recipientId = data.sender === 'driver' ? data.userId : data.driverId;
     if (!recipientId) {
       console.error("Missing recipient ID");
       return;
     }
 
-    // Find recipient's socket
     const recipientSocketId = userSocketMap[recipientId];
     if (!recipientSocketId) {
       console.error(`No socket found for recipient: ${recipientId}`);
       return;
     }
 
-    // Emit the message to the recipient
     io.to(recipientSocketId).emit("receiveMessage", {
       sender: data.sender,
       message: data.message,
-      timestamp: data.timestamp
+      timestamp: data.timestamp,
+      type: data.type,
+      fileUrl: data.fileUrl
     });
 
     console.log(`Message forwarded from ${data.sender} to ${recipientId}`);
@@ -282,7 +282,6 @@ socket.on("sendMessage", async (data: {
     console.error("Error processing chat message:", error);
   }
 });
-
 };
 
 const setupDriverEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
@@ -322,7 +321,7 @@ socket.on("rideStarted", async({ bookingId, userId, driverLocation })=>{
 
     console.log(`rideStarted==`,{ bookingId, userId, driverLocation });
     if (targetSocketId) {
-      io.to(targetSocketId).emit("driverStartRide",{driverLocation});
+      io.to(targetSocketId).emit("driverStartRide",{...driverLocation});
     } else {
       console.error(`No socket found for user: ${userId} in userSocketMap`);
       socket.emit("error", {
@@ -375,8 +374,6 @@ const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer,
     mobile:string;
     profile:string;
   }) => {
-
-    console.log("requestRide==",rideData);
     
     if (role !== "User") {
       socket.emit("error", { message: "Unauthorized", code: "UNAUTHORIZED" });
@@ -394,6 +391,29 @@ const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer,
       });
     }
   });
+
+  socket.on("cancelRide", async (userId, ride_id)=>{
+    console.log("calnse","userid",userId,"ride id", ride_id,"role",role);
+   const reponse = await bookingController.cancelRide(userId.userId, userId.rideId) as any;
+    console.log("cancelRide reponse==",reponse);
+
+    if(reponse.status === "Success"){
+      const userSocket = userSocketMap[reponse?.data?.user?.user_id];
+    console.log("userSocket",userSocket);
+
+      if(userSocket){
+        io.to(userSocket).emit("canceled",{user:'user'});
+      }
+
+      const driverSocket = userSocketMap[reponse?.data?.driver?.driver_id];
+      console.log("driverSocket",driverSocket);
+
+            if(driverSocket){
+        io.to(driverSocket).emit("canceled",{driver:"driver"});
+      }
+    }
+    
+  })
 };
 
 const processRideRequest = async (
@@ -477,13 +497,6 @@ const handleDriverRideRequests = async (
   drivers: Array<{ driverId: string; distance: number; rating: number; cancelCount: number }>,
   stopSignal: { stop: boolean }
 ) => {
-  console.log('Processing ride request for user:', userId);
-  console.log('Ride details:', {
-    rideId: ride.data.booking.ride_id,
-    distance: ride.data.distance,
-    price: ride.data.price,
-    vehicleType: rideData.vehicleModel
-  });
 
   for (const driver of drivers) {
     if (stopSignal.stop) {
@@ -492,9 +505,6 @@ const handleDriverRideRequests = async (
     }
 
     const driverRideRequest: DriverRideRequest = createRideRequestData(userId, ride, rideData);
-    console.log(`Sending ride request to driver:`,driverRideRequest);
-    console.log("=================99",userId, ride, rideData);
-    
     
     const accepted = await sendRideRequest(io, driver.driverId, driverRideRequest, stopSignal);
 
@@ -589,7 +599,6 @@ const createRideRequestData = (
     requestTimestamp: timestamp
   };
 };
-
 
 const sendRideRequest = (
   io: SocketIOServer,
@@ -693,15 +702,10 @@ const handleRideAcceptance = async (
       io.to(targetSocketId).emit("rideStatus", {
         ride_id: bookingResponse.data.ride_id,
         status: "Accepted",
-        message: "Your ride has been accepted by a driver!",
         driverId,
         driverCoordinates,
         booking: bookingResponse.data,
-        driverDetails: driverDetails || {
-          id: driverId,
-          name: "Unknown Driver",
-          rating: 0,
-        },
+        driverDetails: driverDetails,
       });
 
     } else {
