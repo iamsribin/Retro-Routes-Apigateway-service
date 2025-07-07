@@ -169,9 +169,8 @@ export default class DriverAuthController {
     try {
       const operation = "get-driver-profile";
       const id = req.user?.id;
-      console.log("without get-driver-profile id ===", id);
       const response = await driverRabbitMqClient.produce(id, operation);
-      console.log("response==", response);
+
       res.status(StatusCode.Accepted).json(response);
     } catch (error) {
       console.log(error);
@@ -281,7 +280,7 @@ updateDriverDetails = async (req: Request, res: Response) => {
     }
   };
 
-   uploadChatFile = async(req: Request, res: Response)=>{
+  uploadChatFile = async(req: Request, res: Response)=>{
 try {
         const files: any = req.files;
       let Url = "";

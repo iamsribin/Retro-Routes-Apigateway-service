@@ -1,4 +1,3 @@
-// api-gateway code
 import { Server as HttpServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
@@ -9,9 +8,7 @@ import driverRabbitMqClient from "../driver/rabbitmq/client";
 import redisClient from "../../config/redis.config";
 import { findNearbyDrivers } from "../../utils/findNearByDrivers";
 import mongoose from "mongoose";
-import BookingController from "../booking/controller"
 
-const bookingController = new BookingController()
 interface BookingResponse {
   data: {
     userData:{
@@ -39,7 +36,6 @@ interface Coordinates {
   latitude: number;
   longitude: number;
 }
-
 interface BookingInterface {
   data: {
  _id: mongoose.Types.ObjectId;
@@ -117,7 +113,6 @@ interface DriverRideRequest {
   requestTimestamp: string;
 }
 
-// Global socket mapping
 const userSocketMap: { [key: string]: string } = {};
 
 export const setupSocketIO = (server: HttpServer): SocketIOServer => {
@@ -128,6 +123,8 @@ export const setupSocketIO = (server: HttpServer): SocketIOServer => {
       credentials: true,
     },
   });
+
+  console.log(`Socket.IO initialized with CORS origin: ${process.env.CORS_ORIGIN}`);
 
   io.use(authenticateSocket);
 
@@ -250,13 +247,12 @@ socket.on("sendMessage", async (data: {
   timestamp: string;
   driverId?: string;
   userId?: string;
-  type: string;
-  fileUrl: string;
+  type?: 'text' | 'image';
+  fileUrl?: string;
 }) => {
   console.log("New chat message received:", data);
   
   try {
-
     const recipientId = data.sender === 'driver' ? data.userId : data.driverId;
     if (!recipientId) {
       console.error("Missing recipient ID");
@@ -273,8 +269,8 @@ socket.on("sendMessage", async (data: {
       sender: data.sender,
       message: data.message,
       timestamp: data.timestamp,
-      type: data.type,
-      fileUrl: data.fileUrl
+      type: data.type || 'text', // Default to 'text' if not provided
+      fileUrl: data.fileUrl || undefined,
     });
 
     console.log(`Message forwarded from ${data.sender} to ${recipientId}`);
@@ -282,6 +278,7 @@ socket.on("sendMessage", async (data: {
     console.error("Error processing chat message:", error);
   }
 });
+
 };
 
 const setupDriverEvents = (socket: AuthenticatedSocket, io: SocketIOServer, role: string, userId: string) => {
@@ -374,6 +371,8 @@ const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer,
     mobile:string;
     profile:string;
   }) => {
+
+    console.log("requestRide==",rideData);
     
     if (role !== "User") {
       socket.emit("error", { message: "Unauthorized", code: "UNAUTHORIZED" });
@@ -391,29 +390,6 @@ const setupRideRequestEvents = (socket: AuthenticatedSocket, io: SocketIOServer,
       });
     }
   });
-
-  socket.on("cancelRide", async (userId, ride_id)=>{
-    console.log("calnse","userid",userId,"ride id", ride_id,"role",role);
-   const reponse = await bookingController.cancelRide(userId.userId, userId.rideId) as any;
-    console.log("cancelRide reponse==",reponse);
-
-    if(reponse.status === "Success"){
-      const userSocket = userSocketMap[reponse?.data?.user?.user_id];
-    console.log("userSocket",userSocket);
-
-      if(userSocket){
-        io.to(userSocket).emit("canceled",{user:'user'});
-      }
-
-      const driverSocket = userSocketMap[reponse?.data?.driver?.driver_id];
-      console.log("driverSocket",driverSocket);
-
-            if(driverSocket){
-        io.to(driverSocket).emit("canceled",{driver:"driver"});
-      }
-    }
-    
-  })
 };
 
 const processRideRequest = async (
@@ -497,6 +473,13 @@ const handleDriverRideRequests = async (
   drivers: Array<{ driverId: string; distance: number; rating: number; cancelCount: number }>,
   stopSignal: { stop: boolean }
 ) => {
+  console.log('Processing ride request for user:', userId);
+  console.log('Ride details:', {
+    rideId: ride.data.booking.ride_id,
+    distance: ride.data.distance,
+    price: ride.data.price,
+    vehicleType: rideData.vehicleModel
+  });
 
   for (const driver of drivers) {
     if (stopSignal.stop) {
@@ -505,6 +488,9 @@ const handleDriverRideRequests = async (
     }
 
     const driverRideRequest: DriverRideRequest = createRideRequestData(userId, ride, rideData);
+    console.log(`Sending ride request to driver:`,driverRideRequest);
+    console.log("=================99",userId, ride, rideData);
+    
     
     const accepted = await sendRideRequest(io, driver.driverId, driverRideRequest, stopSignal);
 
@@ -599,6 +585,7 @@ const createRideRequestData = (
     requestTimestamp: timestamp
   };
 };
+
 
 const sendRideRequest = (
   io: SocketIOServer,
@@ -702,10 +689,15 @@ const handleRideAcceptance = async (
       io.to(targetSocketId).emit("rideStatus", {
         ride_id: bookingResponse.data.ride_id,
         status: "Accepted",
+        message: "Your ride has been accepted by a driver!",
         driverId,
         driverCoordinates,
         booking: bookingResponse.data,
-        driverDetails: driverDetails,
+        driverDetails: driverDetails || {
+          id: driverId,
+          name: "Unknown Driver",
+          rating: 0,
+        },
       });
 
     } else {

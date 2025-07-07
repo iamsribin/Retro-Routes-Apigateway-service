@@ -2,7 +2,6 @@ import compression from "compression";
 import cors from "cors";
 import express, { Application } from "express";
 import helmet from "helmet";
-import logger from "morgan";
 import cookieParser from "cookie-parser";
 import http from "http";
 import { limiter } from "./utils/rateLimiter";
@@ -15,6 +14,7 @@ import adminRoute from "./modules/admin/route"
 import { isValidated } from "./modules/auth/controller";
 import { setupSocketIO } from "./modules/socket/socket";
 import {isEnvDefined} from "./utils/envChecker";
+import { logger, morganMiddleware } from "./middleware/centralized-logging";
 
 class App {        
   public app: Application;
@@ -43,7 +43,7 @@ class App {
     
     this.app.use(compression());
     this.app.use(helmet());
-    this.app.use(logger("dev"));
+    this.app.use(morganMiddleware);
     this.app.use(cookieParser());
     this.app.use(limiter);
   }
@@ -62,7 +62,8 @@ class App {
 
   public startServer(port: number): void {
     this.server.listen(port, () => {
-      console.log(`API-Gateway started on ${port}`);
+      // console.log(`API-Gateway started on ${port}`);
+       logger.info(`api gateway is running on port ${port}`);
     });
   }
 }
