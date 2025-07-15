@@ -15,6 +15,7 @@ import { isValidated } from "./modules/auth/controller";
 import { setupSocketIO } from "./modules/socket/socket";
 import {isEnvDefined} from "./utils/envChecker";
 import { logger, morganMiddleware } from "./middleware/centralized-logging";
+import { protectedPaymentRoute } from "./modules/payment/route";
 
 class App {        
   public app: Application;
@@ -55,6 +56,7 @@ class App {
     this.app.use("/api/auth", authRoute);
     // Protected routes 
     this.app.use('/api/auth',authRoute);
+    this.app.use('/api/user/payments', isValidated('User'), protectedPaymentRoute); 
     this.app.use("/api/user", isValidated("User"), protectedUserRoute);
     this.app.use("/api/driver", isValidated("Driver"), protectedDriverRoute);
     this.app.use("/api/admin", isValidated("Admin"), adminRoute);

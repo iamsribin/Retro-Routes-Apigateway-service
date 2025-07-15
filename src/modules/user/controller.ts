@@ -155,6 +155,7 @@ try {
   res.status(StatusCode.InternalServerError).json({message:"Internal Server Error",})
 }
   }
+}
 
 //   async fetchUserProfile(req: Request, res: Response) {
 //  try {
@@ -174,5 +175,5 @@ try {
 //         message: "Failed to authenticate Google login",
 //       });
 //     }
+
 //   }
-}

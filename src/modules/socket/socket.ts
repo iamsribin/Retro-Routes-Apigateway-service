@@ -340,7 +340,7 @@ const setupDriverEvents = (
     }
     console.log("Driver location update:", { latitude, longitude });
     try {
-      await updateDriverLocation(io,userId, { latitude, longitude });
+      await updateDriverLocation(io, userId, { latitude, longitude });
     } catch (error) {
       console.error("Error updating driver location:", error);
       socket.emit("error", {
@@ -384,6 +384,20 @@ const setupDriverEvents = (
       });
     }
   });
+
+  socket.on("rideCompleted", async ({ bookingId, userId }) => {
+    const id = userSocketMap[userId];
+    if (!id) {
+      console.log("no id ");
+    }
+
+    io.to(id).emit("rideCompleted", {
+      bookingId,
+      userId,
+      role:"user",
+    });
+
+  });
 };
 
 const updateDriverLocation = async (
@@ -394,12 +408,11 @@ const updateDriverLocation = async (
   const driverDetailsKey = `onlineDriver:details:${driverId}`;
   const inRideDriverDetailKey = `inRide:driver:${driverId}`;
 
-
   const isAlreadyOnline = await redisClient.exists(driverDetailsKey);
   const inRideDriverExists = await redisClient.exists(inRideDriverDetailKey);
 
-console.log("isAlreadyOnline",isAlreadyOnline);
-console.log("inRideDriverExists",inRideDriverExists);
+  console.log("isAlreadyOnline", isAlreadyOnline);
+  console.log("inRideDriverExists", inRideDriverExists);
 
   if (!isAlreadyOnline && !inRideDriverExists) {
     const driverDetails = (await driverRabbitMqClient.produce(
@@ -429,14 +442,12 @@ console.log("inRideDriverExists",inRideDriverExists);
     if (userSocketId) {
       io.to(userSocketId).emit("driverLocationUpdate", {
         driverId,
-        coordinates
+        coordinates,
       });
       console.log("emit driver coor into user side");
-      
     }
   }
 };
-
 
 const setupRideRequestEvents = (
   socket: AuthenticatedSocket,
@@ -819,7 +830,7 @@ const handleRideAcceptance = async (
       : null;
 
     await redisClient.zRem("driver:locations", driverId);
-    await redisClient.del(driverDetailsKey);  
+    await redisClient.del(driverDetailsKey);
 
     const parseEstimateTime = (timeStr: string): number => {
       let hours = 0,
