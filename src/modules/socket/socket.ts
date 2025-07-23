@@ -524,6 +524,7 @@ const processRideRequest = async (
     rideData.pickupLocation.longitude,
     rideData.vehicleModel
   );
+console.log("drivers",drivers);
 
   if (!drivers.length) {
     io.to(`user:${userId}`).emit("rideStatus", {
@@ -913,7 +914,10 @@ const handleRideAcceptance = async (
 const removeDriverFromCache = async (driverId: string) => {
   try {
     await redisClient.del(`onlineDriver:details:${driverId}`);
+    await redisClient.del(`inRide:driver:${driverId}`);
+
     await redisClient.zRem("driver:locations", driverId);
+
     console.log(`Driver ${driverId} removed from Redis cache`);
   } catch (error) {
     console.error(`Error removing driver ${driverId} from Redis cache:`, error);

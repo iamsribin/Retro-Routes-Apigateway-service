@@ -55,8 +55,7 @@ class App {
     this.app.use("/api/driver", publicDriverRoute);
     this.app.use("/api/auth", authRoute);
     // Protected routes 
-    this.app.use('/api/auth',authRoute);
-    this.app.use('/api/user/payments', isValidated('User'), protectedPaymentRoute); 
+    this.app.use('/api/user/payments', protectedPaymentRoute); 
     this.app.use("/api/user", isValidated("User"), protectedUserRoute);
     this.app.use("/api/driver", isValidated("Driver"), protectedDriverRoute);
     this.app.use("/api/admin", isValidated("Admin"), adminRoute);

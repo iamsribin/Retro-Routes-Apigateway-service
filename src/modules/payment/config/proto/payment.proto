@@ -6,6 +6,7 @@ service Payment {
   rpc ProcessWalletPayment(WalletPaymentRequest) returns (WalletPaymentResponse) {}
   rpc ProcessCashPayment(CashPaymentRequest) returns (CashPaymentResponse) {}
   rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {}
+  rpc HandleWebhook(WebhookRequest) returns (WebhookResponse) {}
 }
 
 message CheckoutSessionRequest {
@@ -13,6 +14,7 @@ message CheckoutSessionRequest {
   string userId = 2;
   string driverId = 3;
   double amount = 4;
+  string idempotencyKey = 5;
 }
 
 message CheckoutSessionResponse {
@@ -25,6 +27,7 @@ message WalletPaymentRequest {
   string userId = 2;
   string driverId = 3;
   double amount = 4;
+  string idempotencyKey = 5;
 }
 
 message WalletPaymentResponse {
@@ -37,6 +40,7 @@ message CashPaymentRequest {
   string userId = 2;
   string driverId = 3;
   double amount = 4;
+  string idempotencyKey = 5;
 }
 
 message CashPaymentResponse {
@@ -57,4 +61,14 @@ message GetTransactionResponse {
   string paymentMethod = 6;
   string status = 7;
   string createdAt = 8;
+  double adminShare = 9;
+  double driverShare = 10;
+}
+
+message WebhookRequest {
+  string payload = 1;
+}
+
+message WebhookResponse {
+  string message = 1;
 }

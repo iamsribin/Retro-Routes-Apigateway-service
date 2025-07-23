@@ -9,6 +9,8 @@ export interface DriverDetails {
 
 export async function findNearbyDrivers(latitude: number, longitude: number, vehicleModel: string): Promise<DriverDetails[]> {
     try {
+      console.log("latitude: number, longitude",latitude, longitude, vehicleModel);
+      
       const drivers = (await redisClient.sendCommand([
         'GEORADIUS',
         'driver:locations',

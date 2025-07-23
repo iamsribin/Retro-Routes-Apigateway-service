@@ -12,7 +12,7 @@ export default class BookingController {
   async fetchVehicles(req: Request, res: Response) {
     try {
       const operation = "get-vehicles";
-      console.log("entgere", operation);
+      console.log("ethyyyy", operation);
       const data = (await bookingRabbitMqClient.produce(
         {},
         operation
