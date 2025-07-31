@@ -20,28 +20,36 @@ export interface Message {
     refreshToken: string;
   }
 
+  export interface IWalletTransaction {
+  id: string
+  date: Date
+  details: string
+  amount: number
+  status: string
+  userId: string 
+}
+
+export interface IRideDetails {
+  id: string
+  completedRides: number
+  cancelledRides: number
+}
+
   export interface UserInterface extends Document {
-    name: string;
-    email: string;
-    mobile: number;
-    password: string;
-    userImage: string;
-    referral_code: string;
-    account_status: string;
-    joiningDate: string;
-    wallet: {
-        balance: number;
-        transactions: {
-            date: Date;
-            details: string;
-            amount: number;
-            status: string;
-        }[];
-    };
-    RideDetails: {
-        completedRides: number;
-        cancelledRides: number;
-    };
+  id: string
+  name: string
+  email: string
+  mobile: number
+  password: string
+  userImage?: string
+  referral_code?: string
+  joiningDate: Date
+  account_status: 'Good' | 'Block'
+  reason?: string
+  isAdmin: boolean
+  wallet_balance: number
+  transactions: IWalletTransaction[]
+  rideDetails: IRideDetails
   }
 
   interface DecodedToken {

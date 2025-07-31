@@ -208,10 +208,10 @@ message user {
     string name = 1;
     string email = 2;
     string mobile = 3;
-    string userImage = 4;
+    string user_image = 4;
     string referral_code = 5;
     string account_status = 6;
-    string joiningDate = 8;
+    string joining_date = 8;
 }
 
 message AdminGetBlockedDataResponse {
@@ -232,18 +232,18 @@ message AdminGetUserDataRequest{
 }
 
 message AdminGetUserDataResponse{
-   string _id = 7;
+    string id = 7;
     string name = 1;
     string email = 2;
     string mobile = 3;
-    string userImage = 4;
+    string user_image = 4;
     string referral_code = 5;
     string account_status = 6;
     int32 balance = 8;
     int32 total_transactions = 9;
     int32 completed_rides = 10;
     int32 cancelled_rides = 11;
-    string joiningDate = 12;
+    string joining_date = 12;
     string reason = 13;
 }
 

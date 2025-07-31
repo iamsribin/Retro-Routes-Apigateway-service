@@ -4,7 +4,7 @@ import { StatusCode } from "../../interfaces/enum";
 import { Message, AuthResponse } from "../../interfaces/interface";
 import uploadToS3 from "../../services/s3";
 
-export default class UserController {
+class UserController {
   /**
    * Registers a new user with optional image upload and OTP verification
    */
@@ -41,6 +41,8 @@ export default class UserController {
    */
   async checkUser(req: Request, res: Response): Promise<void> {
     try {
+      console.log("=--=-");
+      
       await UserService.CheckUser(
         req.body,
         (err: Error | null, result: { token: string; message: string }) => {
@@ -70,6 +72,8 @@ export default class UserController {
    */
   async checkLoginUser(req: Request, res: Response): Promise<void> {
     try {
+      console.log("checkLoginUser", req.body);
+      
       await UserService.CheckLoginUser(
         req.body,
         (err: Error | null, result: AuthResponse) => {
@@ -139,41 +143,24 @@ export default class UserController {
     }
   }
 
-     uploadChatFile = async(req: Request, res: Response)=>{
-try {
-        const files: any = req.files;
+  uploadChatFile = async (req: Request, res: Response) => {
+    try {
+      const files: any = req.files;
       let Url = "";
       if (files) {
-        [Url] = await Promise.all([
-          uploadToS3(files["file"][0]),
-        ]);
+        [Url] = await Promise.all([uploadToS3(files["file"][0])]);
       }
       console.log("insurance", Url);
 
-      res.status(StatusCode.Accepted).json({message:"success",fileUrl:Url})
-} catch (error) {
-  res.status(StatusCode.InternalServerError).json({message:"Internal Server Error",})
-}
-  }
+      res
+        .status(StatusCode.Accepted)
+        .json({ message: "success", fileUrl: Url });
+    } catch (error) {
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Internal Server Error" });
+    }
+  };
 }
 
-//   async fetchUserProfile(req: Request, res: Response) {
-//  try {
-//      const {id} = req.params
-//       await UserService.fetchUserProfile(
-//         id,
-//         (err: Error | null, result: any) => {
-//           if (err) {
-//             res.status(StatusCode.BadRequest).json({ message: err.message });
-//             return;
-//           }
-//           res.status(StatusCode.Created).json(result);
-//         }
-//       );
-//     } catch (error) {
-//       res.status(StatusCode.InternalServerError).json({
-//         message: "Failed to authenticate Google login",
-//       });
-//     }
-
-//   }
+export const userController = new UserController();

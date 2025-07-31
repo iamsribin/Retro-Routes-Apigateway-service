@@ -8,7 +8,7 @@ export interface ControllerResponse {
   status?: string;
 }
 
-export default class BookingController {
+ class BookingController {
   async fetchVehicles(req: Request, res: Response) {
     try {
       const operation = "get-vehicles";
@@ -109,3 +109,6 @@ export default class BookingController {
     
   }
 }
+
+
+export const bookingController = new BookingController();

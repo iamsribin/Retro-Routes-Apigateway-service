@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken";
 import { AuthClient } from "../auth/config/grpc-client/auth.client";
 import { Tokens, AuthenticatedSocket } from "../../interfaces/interface";
 import bookingRabbitMqClient from "../booking/rabbitmq/client";
-import driverRabbitMqClient from "../driver/rabbitmq/client";
 import redisClient from "../../config/redis.config";
-import { findNearbyDrivers } from "../../utils/findNearByDrivers";
+import { findNearbyDrivers } from "../../utils/find-near-by-drivers";
 import mongoose from "mongoose";
+import { driverController } from "../driver/controllers/driver-controller";
 
 interface BookingResponse {
   data: {
@@ -84,7 +84,6 @@ interface BookingInterface {
   };
   message: string;
 }
-
 interface LocationCoordinates {
   latitude: number;
   longitude: number;
@@ -394,9 +393,8 @@ const setupDriverEvents = (
     io.to(id).emit("rideCompleted", {
       bookingId,
       userId,
-      role:"user",
+      role: "user",
     });
-
   });
 };
 
@@ -415,13 +413,7 @@ const updateDriverLocation = async (
   console.log("inRideDriverExists", inRideDriverExists);
 
   if (!isAlreadyOnline && !inRideDriverExists) {
-    const driverDetails = (await driverRabbitMqClient.produce(
-      { id: driverId },
-      "get-online-driver"
-    )) as any;
-
-    console.log("get-online-driver:", driverDetails.data);
-
+    const driverDetails = (driverController.getOnlineDriverDetails(driverId))as any;
     await redisClient.set(driverDetailsKey, JSON.stringify(driverDetails.data));
   }
 
@@ -524,7 +516,7 @@ const processRideRequest = async (
     rideData.pickupLocation.longitude,
     rideData.vehicleModel
   );
-console.log("drivers",drivers);
+  console.log("drivers", drivers);
 
   if (!drivers.length) {
     io.to(`user:${userId}`).emit("rideStatus", {
@@ -634,7 +626,7 @@ const handleDriverRideRequests = async (
       console.log(
         `Ride ${driverRideRequest.ride.rideId} declined by driver ${driver.driverId}`
       );
-      await incrementDriverCancelCount(driver.driverId);
+      await  driverController.updateDriverCancelCount(driver.driverId);
     }
   }
 
@@ -783,7 +775,7 @@ const sendRideRequest = (
         );
       } else {
         console.log(`Ride ${response.rideId} declined by driver ${driverId}`);
-        await incrementDriverCancelCount(driverId);
+        await  driverController.updateDriverCancelCount(driverId);
       }
 
       resolve(response.accepted);
@@ -800,7 +792,7 @@ const sendRideRequest = (
         responseHandler
       );
       if (!stopSignal.stop) {
-        await incrementDriverCancelCount(driverId);
+        await  driverController.updateDriverCancelCount(driverId);
       }
       resolve(false);
     }, timeoutDuration);
@@ -925,12 +917,9 @@ const removeDriverFromCache = async (driverId: string) => {
   }
 };
 
-const incrementDriverCancelCount = async (driverId: string) => {
+  driverController.updateDriverCancelCount = async (driverId: string) => {
   try {
-    await driverRabbitMqClient.produce(
-      { id: driverId },
-      "update-driver-cancel-count"
-    );
+      await  driverController.updateDriverCancelCount(driverId)
     console.log(`Cancellation count incremented for driver ${driverId}`);
   } catch (error) {
     console.error(

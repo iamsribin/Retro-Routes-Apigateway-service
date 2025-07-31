@@ -4,7 +4,7 @@ import express, { Application } from "express";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import http from "http";
-import { limiter } from "./utils/rateLimiter";
+import { limiter } from "./utils/rate-limiter";
 import "dotenv/config";
 
 import { protectedUserRoute, publicUserRoute } from "./modules/user/route";
@@ -13,7 +13,7 @@ import authRoute from "./modules/auth/route"
 import adminRoute from "./modules/admin/route"
 import { isValidated } from "./modules/auth/controller";
 import { setupSocketIO } from "./modules/socket/socket";
-import {isEnvDefined} from "./utils/envChecker";
+import {isEnvDefined} from "./utils/env-checker";
 import { logger, morganMiddleware } from "./middleware/centralized-logging";
 import { protectedPaymentRoute } from "./modules/payment/route";
 

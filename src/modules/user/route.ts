@@ -1,26 +1,25 @@
 import express from "express";
-import userController from "./controller";
+import {userController} from "./controller";
 import upload from "../../middleware/multer";
-import BookingController from "../booking/controller";
-const controller = new userController();
-const bookingController = new BookingController();
+import {bookingController} from "../booking/controller";
+
 // Public routes 
 const publicUserRoute = express.Router();
-publicUserRoute.post("/register", upload.single("userImage"), controller.register);
-publicUserRoute.post("/checkUser", controller.checkUser);
-publicUserRoute.post("/resendOtp", controller.resendOtp);
-publicUserRoute.post("/checkLoginUser", controller.checkLoginUser);
-publicUserRoute.post("/checkGoogleLoginUser", controller.checkGoogleLoginUser);
+publicUserRoute.post("/register", upload.single("userImage"), userController.register);
+publicUserRoute.post("/checkUser", userController.checkUser);
+publicUserRoute.post("/resendOtp", userController.resendOtp);
+publicUserRoute.post("/checkLoginUser", userController.checkLoginUser);
+publicUserRoute.post("/checkGoogleLoginUser", userController.checkGoogleLoginUser);
 publicUserRoute.get("/vehicles", bookingController.fetchVehicles);
-// publicUserRoute.get("/profile/:id",controller.fetchUserProfile);
+// publicUserRoute.get("/profile/:id",userController.fetchUserProfile);
 
-// publicUserRoute.get("/bookings/:id",bookingController.fetchUserBookingList);
+// publicUserRoute.get("/bookings/:id",bookinguserController.fetchUserBookingList);
 
 // Protected routes 
 const protectedUserRoute = express.Router();
-protectedUserRoute.post("/uploadChatFile",upload.fields([{name:"file", maxCount:1}]), controller.uploadChatFile)
+protectedUserRoute.post("/uploadChatFile",upload.fields([{name:"file", maxCount:1}]), userController.uploadChatFile)
 
-// protectedUserRoute.get("/profile", controller.getProfile); 
-// protectedUserRoute.post("/booking", controller.createBooking); 
+// protectedUserRoute.get("/profile", userController.getProfile); 
+// protectedUserRoute.post("/booking", userController.createBooking); 
 
 export { publicUserRoute, protectedUserRoute };

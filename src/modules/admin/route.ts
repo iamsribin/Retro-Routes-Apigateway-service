@@ -1,6 +1,6 @@
 import express,{ Application } from "express";
-import UserController from "./controller/userController";
-import DriverController from "./controller/driverController";
+import UserController from "./controller/user-controller";
+import DriverController from "./controller/driver-controller";
 const adminRoute: Application = express();
 
 const adminDriverController = new DriverController()
