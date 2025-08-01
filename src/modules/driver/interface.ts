@@ -37,7 +37,7 @@ export interface DriverProfileDTO {
   name: string;
   email: string;
   mobile: string;
-  driverImage?: string;
+  driverImage: string;
   address?: string;
   totalRatings: number;
   joiningDate: string;

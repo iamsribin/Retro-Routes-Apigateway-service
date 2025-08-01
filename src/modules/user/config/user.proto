@@ -14,11 +14,28 @@ service User {
     rpc RidePayment(RidePaymentRequest) returns (RidePaymentResponse) {}
     rpc razorpayPayment(razorpayPaymentRequest) returns (razorpayPaymentResponse) {}
     rpc AdminLogin(AdminLoginRequest) returns (AdminLoginResponse) {}
-    rpc AdminGetActiveUser(Empty) returns (AdminGetDataResponse) {}
+    rpc AdminGetUsersList(PaginationQuery) returns (AdminGetDataResponse) {}
     rpc AdminGetUserData(AdminGetUserDataRequest) returns (AdminGetUserDataResponse) {}
     rpc AdminGetBlockedUsers(Empty) returns (AdminGetBlockedDataResponse) {}
     rpc AdminUpdateUserStatus(AdminUpdateUserStatusRequest) returns (AdminUpdateUserStatusResponse) {}
     rpc AdminDashboardData(AdminDashboardDataRequest) returns (AdminDashboardDataResponse) {}
+}
+
+message PaginationQuery{
+ string page = 1;
+ string limit = 2;
+ string search = 3;
+ string status = 4;
+}
+
+
+message PaginationInfo {
+    int32 currentPage = 1;
+    int32 totalPages = 2;
+    int32 totalItems = 3;
+    int32 itemsPerPage = 4;
+    bool hasNextPage = 5;
+    bool hasPreviousPage = 6;
 }
 
 message RegisterRequest {
@@ -201,10 +218,11 @@ message Empty {
 
 message AdminGetDataResponse {
     repeated user Users=1;
+    PaginationInfo pagination = 2;
 }
 
 message user {
-    string _id = 7;
+    string id = 7;
     string name = 1;
     string email = 2;
     string mobile = 3;

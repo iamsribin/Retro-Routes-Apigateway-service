@@ -3,6 +3,8 @@ import driverRabbitMqClient from "../rabbitmq/client";
 import { StatusCode } from "../../../interfaces/enum";
 import uploadToS3 from "../../../services/s3";
 import { IResponse, DriverProfileDTO } from "../interface";
+import { generateSignedUrl } from "../../../services/generateSignedUrl";
+import { recursivelySignImageUrls } from "../../../utils/recursive-image-URL-signing";
 
 class DriverController {
   fetchDriverProfile = async (req: Request, res: Response) => {
@@ -14,8 +16,12 @@ class DriverController {
         id,
         operation
       )) as IResponse<DriverProfileDTO>;
+      if (response.status === StatusCode.OK && response.data) {
+        if (response.data.driverImage) {
+          const signedUrl = await generateSignedUrl(response.data.driverImage);
+          response.data.driverImage = signedUrl;
+        }
 
-      if (response.status === StatusCode.OK) {
         res.status(response.status).json(response.data);
       } else {
         res.status(+response.status).json({
@@ -82,8 +88,12 @@ class DriverController {
         id,
         operation
       )) as IResponse<DriverProfileDTO>;
+      console.log("response bfore=", response);
 
       if (response.status === StatusCode.Accepted) {
+        // await recursivelySignImageUrls(response.data);
+      console.log("response aftre=", response);
+
         res.status(response.status).json(response);
       } else {
         res.status(+response.status).json({
@@ -173,7 +183,7 @@ class DriverController {
         .json({ message: "Internal Server Error" });
     }
   };
-  
+
   getOnlineDriverDetails = async (id: string) => {
     try {
       const operation = "get-online-driver";
@@ -183,7 +193,7 @@ class DriverController {
       return driverDetails;
     } catch (error) {}
   };
-  
+
   updateDriverCancelCount = async (id: string) => {
     try {
       const operation = "update-driver-cancel-count";

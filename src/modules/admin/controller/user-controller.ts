@@ -4,16 +4,28 @@ import { UserInterface } from "../../../interfaces/interface";
 import { StatusCode } from "../../../interfaces/enum";
 
 export default class AdminController {
-  getActiveUsers = (req: Request, res: Response) => {
+  getUsersList = (req: Request, res: Response) => {
     try {
-      UserService.AdminGetActiveUser(
-        {},
-        (err: any, result: { Users: UserInterface }) => {
+      const { page = 1, limit = 10, search = "", status } = req.query;
+
+      // Optional: Convert page and limit to numbers
+      const pageNumber = parseInt(page as string, 10);
+      const limitNumber = parseInt(limit as string, 10);
+      const searchTerm = search as string;
+      UserService.AdminGetUsersList(
+        { page: pageNumber, limit: limitNumber, search: searchTerm, status },
+        (err: any, result: any) => {
           if (err) {
             res.status(StatusCode.BadRequest).json({ message: err });
           } else {
-            const users = result.Users || [];                        
-            res.status(StatusCode.Created).json(users);
+            console.log("result result", result);
+
+            const users = result.Users || [];
+            const { Users, pagination } = result;
+            console.log("9090",{ Users, pagination });
+            
+            res.status(StatusCode.Created).json({ users: Users || [], pagination });
+            // res.status(StatusCode.Created).json(users);
           }
         }
       );
@@ -44,10 +56,9 @@ export default class AdminController {
         req.query,
         (err: any, result: { User: UserInterface }) => {
           if (err) {
-            
             res.status(StatusCode.BadRequest).json({ message: err });
           } else {
-            console.log("result",result);
+            console.log("result", result);
             res.status(StatusCode.OK).json(result);
           }
         }

@@ -6,8 +6,8 @@ const adminRoute: Application = express();
 const adminDriverController = new DriverController()
 const adminUserController = new UserController()
 
-adminRoute.get("/getActiveUserData",adminUserController.getActiveUsers);
-adminRoute.get("/blockedUserData",adminUserController.getBlockedUsers);
+adminRoute.get("/getActiveUserData",adminUserController.getUsersList);
+adminRoute.get("/blockedUserData",adminUserController.getUsersList);
 adminRoute.get("/userData", adminUserController.getUserData);
 adminRoute.patch("/updateUserStatus", adminUserController.updateUserStatus);
 
