@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { UserService } from "./config/user.client";
-import { StatusCode } from "../../interfaces/enum";
+import { StatusCode } from "../../types/common/enum";
 import { Message, AuthResponse } from "../../interfaces/interface";
 import uploadToS3 from "../../services/s3";
 

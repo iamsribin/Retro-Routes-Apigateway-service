@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { StatusCode } from "../../interfaces/enum";
-import bookingRabbitMqClient from "../booking/rabbitmq/client";
+import { StatusCode } from "../../types/common/enum";
+// import bookingRabbitMqClient from "../booking/rabbitmq/client";
 
 export interface ControllerResponse {
   message: string;
@@ -13,22 +13,22 @@ export interface ControllerResponse {
     try {
       const operation = "get-vehicles";
       console.log("ethyyyy", operation);
-      const data = (await bookingRabbitMqClient.produce(
-        {},
-        operation
-      )) as ControllerResponse;
-      console.log("get-vehicles-list==", data);
-      if (data.message !== "Success") {
-        res.status(StatusCode.NotFound).json({
-          status: "Failed",
-          message: data?.data,
-        });
-      } else {
-        res.status(StatusCode.Accepted).json({
-          status: "Success",
-          message: data?.data,
-        });
-      }
+      // const data = (await bookingRabbitMqClient.produce(
+      //   {},
+      //   operation
+      // )) as ControllerResponse;
+      // console.log("get-vehicles-list==", data);
+      // if (data.message !== "Success") {
+      //   res.status(StatusCode.NotFound).json({
+      //     status: "Failed",
+      //     message: data?.data,
+      //   });
+      // } else {
+      //   res.status(StatusCode.Accepted).json({
+      //     status: "Success",
+      //     message: data?.data,
+      //   });
+      // }
     } catch (error) {
       console.log(error);
       res.status(StatusCode.InternalServerError).json({
@@ -45,20 +45,20 @@ export interface ControllerResponse {
       const id = req.user?.id;
       console.log("reach get-driver-booking-list", id);
 
-      const data = (await bookingRabbitMqClient.produce(id, operation)) as any;
-      console.log("booking-list data", data);
+      // const data = (await bookingRabbitMqClient.produce(id, operation)) as any;
+      // console.log("booking-list data", data);
 
-      if (data.status === "Failed") {
-        res.status(StatusCode.InternalServerError).json({
-          status: "Failed",
-          data: data?.data,
-        });
-      } else {
-        res.status(StatusCode.Accepted).json({
-          status: "Success",
-          data: data?.data,
-        });
-      }
+      // if (data.status === "Failed") {
+      //   res.status(StatusCode.InternalServerError).json({
+      //     status: "Failed",
+      //     data: data?.data,
+      //   });
+      // } else {
+      //   res.status(StatusCode.Accepted).json({
+      //     status: "Success",
+      //     data: data?.data,
+      //   });
+      // }
     } catch (error) {
       console.log("fetchDriverBookingList error", error);
 
@@ -76,20 +76,20 @@ export interface ControllerResponse {
       // const id = req.user?.id;
       console.log("reach get-driver-booking-details", id);
 
-      const data = (await bookingRabbitMqClient.produce(id, operation)) as any;
-      console.log("data====", data);
+      // const data = (await bookingRabbitMqClient.produce(id, operation)) as any;
+      // console.log("data====", data);
 
-      if (data.status === "Failed") {
-        res.status(StatusCode.InternalServerError).json({
-          status: "Failed",
-          data: data?.data,
-        });
-      } else {
-        res.status(StatusCode.Accepted).json({
-          status: "Success",
-          data: data?.data,
-        });
-      }
+      // if (data.status === "Failed") {
+      //   res.status(StatusCode.InternalServerError).json({
+      //     status: "Failed",
+      //     data: data?.data,
+      //   });
+      // } else {
+      //   res.status(StatusCode.Accepted).json({
+      //     status: "Success",
+      //     data: data?.data,
+      //   });
+      // }
     } catch (error) {
       res.status(StatusCode.InternalServerError).json({
         status: "Failed",
@@ -103,9 +103,9 @@ export interface ControllerResponse {
       userId,
       ride_id,
     }    
-        const response = await bookingRabbitMqClient.produce(data, "cancel_ride");
+        // const response = await bookingRabbitMqClient.produce(data, "cancel_ride");
 
-        return response;
+        // return response;
     
   }
 }

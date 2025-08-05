@@ -1,8 +1,8 @@
 import express from "express";
 import upload from "../../middleware/multer";
 import { authController } from "./controllers/auth-controller";
-import {driverController} from "./controllers/driver-controller";
-import {bookingController} from "../booking/controller";
+// import {driverController} from "./controllers/driver-controller";
+// import {bookingController} from "../booking/controller";
 
 
 const publicDriverRoute = express.Router();
@@ -11,7 +11,7 @@ const protectedDriverRoute = express.Router();
 /* ===================== PUBLIC DRIVER ROUTES ===================== */
 
 // ---------- GET ----------
-publicDriverRoute.get("/vehicleModels", bookingController.fetchVehicles);
+// publicDriverRoute.get("/vehicleModels", bookingController.fetchVehicles);
 publicDriverRoute.get("/resubmission/:id", authController.getResubmissionData);
 
 // ---------- POST ----------
@@ -80,29 +80,29 @@ publicDriverRoute.post(
 /* ===================== PROTECTED DRIVER ROUTES ===================== */
 
 // ---------- GET ----------
-protectedDriverRoute.get("/get-driver-profile", driverController.fetchDriverProfile);
-protectedDriverRoute.get("/get-my-documents", driverController.fetchDriverDocuments);
-protectedDriverRoute.get("/getMyTrips", bookingController.fetchDriverBookingList);
-protectedDriverRoute.get("/getMyTripDetails/:id", bookingController.fetchDriverBookingDetails);
+// protectedDriverRoute.get("/get-driver-profile", driverController.fetchDriverProfile);
+// protectedDriverRoute.get("/get-my-documents", driverController.fetchDriverDocuments);
+// // protectedDriverRoute.get("/getMyTrips", bookingController.fetchDriverBookingList);
+// // protectedDriverRoute.get("/getMyTripDetails/:id", bookingController.fetchDriverBookingDetails);
 
-// ---------- PUT ----------
-protectedDriverRoute.put(
-  "/update-driver-profile",
-  upload.single("profilePhoto"),
-  driverController.updateDriverProfile
-);
+// // ---------- PUT ----------
+// protectedDriverRoute.put(
+//   "/update-driver-profile",
+//   upload.single("profilePhoto"),
+//   driverController.updateDriverProfile
+// );
 
-protectedDriverRoute.put(
-  "/update-driver-documents",
-  upload.any(),
-  driverController.updateDriverDocuments
-);
+// protectedDriverRoute.put(
+//   "/update-driver-documents",
+//   upload.any(),
+//   driverController.updateDriverDocuments
+// );
 
-// ---------- POST ----------
-protectedDriverRoute.post(
-  "/uploadChatFile",
-  upload.fields([{ name: "file", maxCount: 1 }]),
-  driverController.uploadChatFile
-);
-
+// // ---------- POST ----------
+// protectedDriverRoute.post(
+//   "/uploadChatFile",
+//   upload.fields([{ name: "file", maxCount: 1 }]),
+//   driverController.uploadChatFile
+// );
+ 
 export { publicDriverRoute, protectedDriverRoute };

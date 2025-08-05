@@ -1,52 +1,50 @@
 import { Request, Response } from "express";
-import adminRabbitMqClient from "../../driver/rabbitmq/client";
-import { StatusCode } from "../../../interfaces/enum";
-import { Res_AdminGetDriverDetailsById, Res_adminUpdateDriverStatus, Res_getDriversListByAccountStatus } from "../interface";
+import { StatusCode } from "../../../types/common/enum";
+import { DriverService } from "../../driver/config/driver.client";
+import { IResponse } from "../../driver/interface";
+import { generateSignedUrl } from "../../../services/generateSignedUrl";
+import {
+  AdminDriverDetailsDTO,
+  PaginatedUserListDTO,
+} from "../../../types/grpc/driver-grpc-response";
 
 export default class DriverController {
-  pendingDrivers = async (req: Request, res: Response) => {
+  getDriversList = async (req: Request, res: Response) => {
     try {
-      const operation = "get-admin-drivers-by-status";
-      const account_status = "Pending";
+      const { page = 1, limit = 10, search = "", status } = req.query;
 
-      const response = (await adminRabbitMqClient.produce(
-        account_status,
-        operation
-      )) as Res_getDriversListByAccountStatus;
+      const searchTerm = search as string;
 
-      if (response.status === StatusCode.OK) {
-        res.status(response.status).json(response.data);
-      } else {
-        res.status(+response.status).json({
-          message: response.message,
-          data: response.data,
-        });
-      }
-    } catch (e: unknown) {
-      res
-        .status(StatusCode.InternalServerError)
-        .json({ message: "Internal Server Error" });
-    }
-  };
+      await DriverService.GetDriversListByAccountStatus(
+        { page, limit, search: searchTerm, status },
+        async (
+          err: Error | null,
+          response: IResponse<PaginatedUserListDTO>
+        ) => {
+          if (err || Number(response.status) !== StatusCode.OK) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });
+          } 
+          if (response.data?.drivers) {
+            const updatedDrivers = await Promise.all(
+              response.data.drivers.map(async (val) => {
+                const signedUrl = await generateSignedUrl(val.driverImage);
+                return {
+                  ...val,
+                  driverImage: signedUrl,
+                };
+              })
+            );
 
-  getVerifiedDrivers = async (req: Request, res: Response) => {
-    try {
-      const operation = "get-admin-drivers-by-status";
-      const account_status = "Good";
+            response.data.drivers = updatedDrivers;
+          }
 
-      const response = (await adminRabbitMqClient.produce(
-        account_status,
-        operation
-      )) as Res_getDriversListByAccountStatus;
-
-      if (response.status === StatusCode.OK) {
-        res.status(response.status).json(response.data);
-      } else {
-        res.status(+response.status).json({
-          message: response.message,
-          data: response.data,
-        });
-      }
+          res.status(+response.status).json(response.data);
+        }
+      );
     } catch (e: unknown) {
       console.log("error mess", e);
       res
@@ -55,59 +53,38 @@ export default class DriverController {
     }
   };
 
-  getBlockedDrivers = async (req: Request, res: Response) => {
-    try {
-      const operation = "get-admin-drivers-by-status";
-      const account_status = "Blocked";
-
-      const response = (await adminRabbitMqClient.produce(
-        account_status,
-        operation
-      )) as Res_getDriversListByAccountStatus;
-
-      if (response.status === StatusCode.OK) {
-        res.status(response.status).json(response.data);
-      } else {
-        res.status(+response.status).json({
-          message: response.message,
-          data: response.data,
-        });
-      }
-
-    } catch (e: unknown) {
-      console.log(e);
-      res
-        .status(StatusCode.InternalServerError)
-        .json({ message: "Internal Server Error" });
-    }
-  };
 
   getDriverDetails = async (req: Request, res: Response) => {
     try {
-      const operation = "get-admin-driver-details";
-
-      const response: Res_AdminGetDriverDetailsById = (await adminRabbitMqClient.produce(
-        req.params.id,
-        operation
-      )) as Res_AdminGetDriverDetailsById ;
-
-      if (response.status === StatusCode.OK) {
-        res.status(response.status).json(response.data);
-      } else {
-        res.status(+response.status).json({
-          message: response.message,
-          data: response.data,
-          navigate:"/admin/drivers"
-        });
-      }
-
+      const { id } = req.params;
+      await DriverService.AdminGetDriverDetailsById(
+        { id },
+        async (
+          err: Error | null,
+          response: IResponse<AdminDriverDetailsDTO["data"]>
+        ) => {
+          if (err || Number(response.status) !== StatusCode.OK) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });
+          }
+          if (response.data?.driverImage) {
+            const signedUrl = await generateSignedUrl(
+              response.data.driverImage
+            );
+            response.data.driverImage = signedUrl;
+          }          
+          res.status(+response.status).json(response.data);
+        }
+      );
     } catch (e: unknown) {
       console.log(e);
       res
         .status(StatusCode.InternalServerError)
         .json({ message: "Internal Server Error" });
     }
-
   };
 
   updateDriverAccountStatus = async (req: Request, res: Response) => {
@@ -115,22 +92,22 @@ export default class DriverController {
       const id = req.params.id;
       const { note, status, fields } = req.body;
 
-      const operation = "admin-update-driver-account-status";
-
       const request = { id, reason: note, status, fields };
 
-      const response = await adminRabbitMqClient.produce(request, operation) as Res_adminUpdateDriverStatus;
+      await DriverService.AdminUpdateDriverAccountStatus(
+        request,
+        (err: Error | null, response: IResponse<boolean>) => {
+          if (err || Number(response.status) !== StatusCode.OK) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });
+          }
 
-     if (response.status === StatusCode.OK) {
-        res.status(response.status).json(response.data);
-      } else {
-        res.status(+response.status).json({
-          message: response.message,
-          data: response.data,
-          navigate:"/admin/drivers"
-        });
-      }
-
+          res.status(+response.status).json(response);
+        }
+      );
     } catch (e: unknown) {
       console.log(e);
       res
