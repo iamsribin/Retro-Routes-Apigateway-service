@@ -1,17 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import uploadToS3 from "../../../services/s3";
+import { DriverService } from "../../driver/config/driver.client";
+import { commonRes } from "../../../types/common/common-response";
 import {
   CheckLoginUserRes,
   CheckRegisterDriverRes,
   getResubmissionDocumentsRes,
   StatusCode,
 } from "retro-roues-common";
-import { DriverService } from "../config/driver.client";
-import { commonRes } from "../../../types/common/common-response";
 
 class DriverAuthController {
+
   checkLogin = async (req: Request, res: Response) => {
     try {
+
       const { mobile } = req.body;
       await DriverService.CheckLoginDriver(
         { mobile },
@@ -38,22 +40,7 @@ class DriverAuthController {
   checkGoogleLoginDriver = async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
-      // const operation = "google-login";
 
-      // const response: Res_checkLogin = (await driverRabbitMqClient.produce(
-      //   email,
-      //   operation
-      // )) as Res_checkLogin;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
       await DriverService.CheckGoogleLoginDriver(
         { email },
         (err: Error | null, response: CheckLoginUserRes) => {
@@ -79,37 +66,15 @@ class DriverAuthController {
   checkRegisterDriver = async (req: Request, res: Response): Promise<void> => {
     try {
       const { mobile } = req.body;
-      const operation = "check-register-driver";
-
-      // const response: Res_checkRegisterDriver =
-      //   (await driverRabbitMqClient.produce(
-      //     mobile,
-      //     operation
-      //   )) as Res_checkRegisterDriver;
-
-      // if (response.isFullyRegistered) {
-      //   res.status(StatusCode.OK).json({
-      //     status: StatusCode.OK,
-      //     message: "Driver already registered. Please login.",
-      //     isFullyRegistered: true,
-      //   });
-      //   return;
-      // }
-
-      // if (response.nextStep && response.driverId) {
-      //   res.status(StatusCode.Accepted).json({
-      //     status: StatusCode.Accepted,
-      //     message: `Driver Already registered! Please submit your ${response.nextStep}`,
-      //     nextStep: response.nextStep,
-      //     driverId: response.driverId,
-      //   });
-      //   return;
-      // }
 
       await DriverService.checkRegisterDriver(
         { mobile },
         (err: Error | null, response: CheckRegisterDriverRes) => {
-          if (err || response.status !== StatusCode.OK) {
+          if (
+            err ||
+            (response.status !== StatusCode.OK &&
+              response.status !== StatusCode.Accepted)
+          ) {
             return res.status(+response?.status || 500).json({
               message: response?.message || "Something went wrong",
               data: response,
@@ -136,10 +101,6 @@ class DriverAuthController {
           }
         }
       );
-      res.status(StatusCode.OK).json({
-        status: StatusCode.OK,
-        message: "New driver, proceed with OTP verification.",
-      });
     } catch (e) {
       console.error(e);
       res.status(StatusCode.InternalServerError).json({
@@ -152,21 +113,6 @@ class DriverAuthController {
   getResubmissionData = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      // const operation = "get-resubmission-documents";
-      // const response = (await driverRabbitMqClient.produce(
-      //   id,
-      //   operation
-      // )) as Res_getResubmissionDocuments;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
 
       await DriverService.getResubmissionDocuments(
         { id },
@@ -232,22 +178,6 @@ class DriverAuthController {
         ...fileUrls,
       };
 
-      // const operation = "post-resubmission-documents";
-      // const response = (await driverRabbitMqClient.produce(
-      //   payload,
-      //   operation
-      // )) as Res_common;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
-
       await DriverService.postResubmissionDocuments(
         payload,
         (err: Error | null, response: commonRes) => {
@@ -272,7 +202,6 @@ class DriverAuthController {
 
   register = async (req: Request, res: Response) => {
     try {
-      const operation = "driver-register";
       const { name, email, mobile, password, reffered_code } = req.body;
 
       const userData = {
@@ -282,21 +211,6 @@ class DriverAuthController {
         password,
         referralCode: reffered_code,
       };
-
-      // const response: Res_common = (await driverRabbitMqClient.produce(
-      //   userData,
-      //   operation
-      // )) as Res_common;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
 
       await DriverService.Register(
         userData,
@@ -350,23 +264,7 @@ class DriverAuthController {
         licenseFrontImage,
         licenseBackImage,
       };
-
-      // const operation = "identification-update";
-      // const response: Res_common = (await driverRabbitMqClient.produce(
-      //   data,
-      //   operation
-      // )) as Res_common;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
-
+ 
       await DriverService.identificationUpdate(
         data,
         (err: Error | null, response: commonRes) => {
@@ -482,7 +380,7 @@ class DriverAuthController {
       //   });
       // }
 
-          await DriverService.vehicleUpdate(
+      await DriverService.vehicleUpdate(
         request,
         (err: Error | null, response: commonRes) => {
           if (err || Number(response.status) !== StatusCode.OK) {
@@ -580,7 +478,7 @@ class DriverAuthController {
       //   });
       // }
 
-     await DriverService.locationUpdate(
+      await DriverService.locationUpdate(
         request,
         (err: Error | null, response: commonRes) => {
           if (err || Number(response.status) !== StatusCode.OK) {

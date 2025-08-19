@@ -7,6 +7,7 @@ import {
   AdminDriverDetailsDTO,
   PaginatedUserListDTO,
 } from "../../../types/grpc/driver-grpc-response";
+import { recursivelySignImageUrls } from "../../../utils/recursive-image-URL-signing";
 
 export default class DriverController {
   getDriversList = async (req: Request, res: Response) => {
@@ -27,7 +28,7 @@ export default class DriverController {
               data: response,
               navigate: response?.navigate || "",
             });
-          } 
+          }
           if (response.data?.drivers) {
             const updatedDrivers = await Promise.all(
               response.data.drivers.map(async (val) => {
@@ -53,7 +54,6 @@ export default class DriverController {
     }
   };
 
-
   getDriverDetails = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -63,6 +63,7 @@ export default class DriverController {
           err: Error | null,
           response: IResponse<AdminDriverDetailsDTO["data"]>
         ) => {
+          console.log("response", response);
           if (err || Number(response.status) !== StatusCode.OK) {
             return res.status(+response?.status || 500).json({
               message: response?.message || "Something went wrong",
@@ -70,12 +71,10 @@ export default class DriverController {
               navigate: response?.navigate || "",
             });
           }
-          if (response.data?.driverImage) {
-            const signedUrl = await generateSignedUrl(
-              response.data.driverImage
-            );
-            response.data.driverImage = signedUrl;
-          }          
+          if (response.data) {
+            await recursivelySignImageUrls(response.data);
+          }
+
           res.status(+response.status).json(response.data);
         }
       );

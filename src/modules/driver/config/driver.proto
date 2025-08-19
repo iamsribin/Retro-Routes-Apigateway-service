@@ -20,6 +20,7 @@ service Driver {
     rpc updateDriverProfile(updateDriverProfileReq) returns (IResponse_UpdateNull){}
     rpc fetchDriverDocuments(idReq) returns (IResponse_DocumentsDTO){}
     rpc updateDriverDocuments (UpdateDriverDocumentsReq) returns (IResponse_UpdateNull){}
+    rpc handleOnlineChange(handleOnlineChangeReq) returns (CommonRes) {}
     // ---------- admin's driver rpc ----------
     rpc GetDriversListByAccountStatus(PaginationQuery) returns (IResponse_PaginatedUserListDTO) {}
     rpc AdminUpdateDriverAccountStatus(AdminUpdateDriverStatusReq) returns (IResponse_Boolean){}
@@ -27,6 +28,18 @@ service Driver {
     // ----------- ride driver rpc -------------
     rpc getOnlineDriverDetails (IdReq) returns (IResponse_OnlineDriverDTO){}
     rpc updateDriverCancelCount (IdReq) returns (IResponse_UpdateNull){}
+}
+
+message handleOnlineChangeReq {
+  bool online = 1; 
+  string driverId = 2; 
+  Coordinates location = 3; 
+  string onlineTimestamp = 4; 
+}
+
+message Coordinates {
+  double lat = 1;
+  double lng = 2;
 }
 
 message PaginationQuery {
@@ -389,10 +402,12 @@ message identificationUpdateReq{
     string aadharFrontImage = 4;
     string aadharBackImage = 5;
     string licenseValidity =6;
+    string licenseFrontImage = 7;
+    string licenseBackImage = 8;
 }
 
 message mobileReq{
-    int32 mobile = 1;
+    string mobile = 1;
 }
 
 message checkRegisterDriverRes{
@@ -406,7 +421,7 @@ message checkRegisterDriverRes{
 message RegisterReq{
  string name = 1;
  string email = 2;
- int32 mobile = 3;
+ string mobile = 3;
  string password = 4;
  string referralCode = 5;
 }
@@ -471,5 +486,5 @@ message CommonRes{
 /////////////////model///////////////////
 message Resubmission {
   string driverId = 1;
-  string fields = 2;
+  repeated string fields = 2;
 }

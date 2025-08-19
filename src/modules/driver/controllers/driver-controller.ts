@@ -1,16 +1,18 @@
 import { Request, Response } from "express";
-// import driverRabbitMqClient from "../rabbitmq/client";
 import { StatusCode } from "../../../types/common/enum";
 import uploadToS3 from "../../../services/s3";
 import { IResponse, DriverProfileDTO } from "../interface";
 import { generateSignedUrl } from "../../../services/generateSignedUrl";
 import { recursivelySignImageUrls } from "../../../utils/recursive-image-URL-signing";
-import { DriverService } from "../config/driver.client";
+import { DriverService } from "../../driver/config/driver.client";
 import { commonRes } from "../../../types/common/common-response";
 import {
   DriverDocumentDTO,
   OnlineDriverDTO,
 } from "../../../types/grpc/driver-grpc-response";
+import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
+
+
 
 class DriverController {
   fetchDriverProfile = async (req: Request, res: Response) => {
@@ -232,6 +234,34 @@ class DriverController {
     }
   };
 
+  handleOnlineChange = async(req: Request, res: Response) =>{
+    try {
+      const {...data} = req.body
+      console.log("datadata",data);
+      
+      await DriverService.handleOnlineChange(
+               data , 
+              (err: Error | null, response: IResponse<null>) => {
+                if (err || Number(response.status) !== StatusCode.OK) {
+                  return res.status(+response?.status || 500).json({
+                    message: response?.message || "Something went wrong",
+                    data: response,
+                    navigate: response?.navigate || "",
+                  }); 
+                }  
+      
+                res.status(+response.status).json(response);
+              }
+            );
+
+            // res.status(StatusCode.OK).json("response");
+    } catch (error) {
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Internal Server Error" });
+    }
+  }
+
   uploadChatFile = async (req: Request, res: Response) => {
     try {
       const files: any = req.files;
@@ -287,6 +317,7 @@ class DriverController {
       );
     } catch (error) {}
   };
+
 }
 
 export const driverController = new DriverController();

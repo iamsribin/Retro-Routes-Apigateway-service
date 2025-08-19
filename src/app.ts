@@ -44,7 +44,7 @@ class App {
     
     this.app.use(compression());
     this.app.use(helmet());
-    this.app.use(morganMiddleware);
+    // this.app.use(morganMiddleware);
     this.app.use(cookieParser());
     this.app.use(limiter);
   }
