@@ -1,4 +1,4 @@
-import { StatusCode } from "../../interfaces/enum";
+import { StatusCode } from "../../types/common/enum";
 import { ResubmissionInterface } from "../../interfaces/resubmission.interface";
 
 export interface Res_checkLogin{

@@ -11,9 +11,7 @@ adminRoute.get("/blockedUserData",adminUserController.getUsersList);
 adminRoute.get("/userData", adminUserController.getUserData);
 adminRoute.patch("/updateUserStatus", adminUserController.updateUserStatus);
 
-adminRoute.get("/verifiedDrivers",adminDriverController.getVerifiedDrivers);
-adminRoute.get("/pendingDrivers",adminDriverController.pendingDrivers);
-adminRoute.get("/blockedDrivers",adminDriverController.getBlockedDrivers);
+adminRoute.get("/get-drivers-list",adminDriverController.getDriversList);
 adminRoute.get("/driverDetails/:id", adminDriverController.getDriverDetails);
 adminRoute.post("/driver/verify/:id", adminDriverController.updateDriverAccountStatus);
 

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { StatusCode } from '../../interfaces/enum';
+import { StatusCode } from '../../types/common/enum';
 import { PaymentService } from './config/grpc-client/payment.client';
 
 export default class PaymentController {

@@ -1,8 +1,8 @@
 import express from "express";
 import upload from "../../middleware/multer";
 import { authController } from "./controllers/auth-controller";
-import {driverController} from "./controllers/driver-controller";
 import {bookingController} from "../booking/controller";
+import { driverController } from "./controllers/driver-controller";
 
 
 const publicDriverRoute = express.Router();
@@ -13,13 +13,13 @@ const protectedDriverRoute = express.Router();
 // ---------- GET ----------
 publicDriverRoute.get("/vehicleModels", bookingController.fetchVehicles);
 publicDriverRoute.get("/resubmission/:id", authController.getResubmissionData);
-
-// ---------- POST ----------
+// ---------- POST ---------- 
 publicDriverRoute.post("/checkLoginDriver", authController.checkLogin);
 publicDriverRoute.post("/checkRegisterDriver", authController.checkRegisterDriver);
 publicDriverRoute.post("/registerDriver", authController.register);
 publicDriverRoute.post("/checkGoogleLoginDriver", authController.checkGoogleLoginDriver);
 publicDriverRoute.post("/location", authController.location);
+publicDriverRoute.post("/handle-online-change", driverController.handleOnlineChange);
 
 publicDriverRoute.post(
   "/identification",
@@ -85,7 +85,7 @@ protectedDriverRoute.get("/get-my-documents", driverController.fetchDriverDocume
 protectedDriverRoute.get("/getMyTrips", bookingController.fetchDriverBookingList);
 protectedDriverRoute.get("/getMyTripDetails/:id", bookingController.fetchDriverBookingDetails);
 
-// ---------- PUT ----------
+// // ---------- PUT ----------
 protectedDriverRoute.put(
   "/update-driver-profile",
   upload.single("profilePhoto"),
@@ -98,11 +98,11 @@ protectedDriverRoute.put(
   driverController.updateDriverDocuments
 );
 
-// ---------- POST ----------
+// // ---------- POST ----------
 protectedDriverRoute.post(
   "/uploadChatFile",
   upload.fields([{ name: "file", maxCount: 1 }]),
   driverController.uploadChatFile
 );
-
+ 
 export { publicDriverRoute, protectedDriverRoute };

@@ -1,13 +1,14 @@
 import { Server as HttpServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
-import { AuthClient } from "../auth/config/grpc-client/auth.client";
+// import { AuthClient } from "../auth/config/grpc-client/auth.client";
 import { Tokens, AuthenticatedSocket } from "../../interfaces/interface";
-import bookingRabbitMqClient from "../booking/rabbitmq/client";
+// import bookingRabbitMqClient from "../booking/rabbitmq/client";
 import redisClient from "../../config/redis.config";
 import { findNearbyDrivers } from "../../utils/find-near-by-drivers";
 import mongoose from "mongoose";
 import { driverController } from "../driver/controllers/driver-controller";
+import { TokenService } from "../../services/token-service";
 
 interface BookingResponse {
   data: {
@@ -144,16 +145,23 @@ export const setupSocketIO = (server: HttpServer): SocketIOServer => {
   return io;
 };
 
-const refreshTokenWithAuthClient = (refreshToken: string): Promise<Tokens> => {
-  return new Promise((resolve, reject) => {
-    AuthClient.RefreshToken(
-      { token: refreshToken },
-      (err: any, result: Tokens) => {
-        if (err) reject(new Error("Invalid refresh token"));
-        resolve(result);
-      }
-    );
-  });
+const refreshTokenWithAuthClient = (refreshToken: string):{accessToken:string,refreshToken:string} => {
+  try {
+    const decoded = TokenService.verifyRefreshToken(refreshToken);
+     return TokenService.generateTokens(decoded.clientId,decoded.role)
+  } catch (error) {
+   throw new Error("Invalid token");
+  }
+  // return new Promise((resolve, reject) => {
+  //   AuthClient.RefreshToken(
+  //     { token: refreshToken },
+  //     (err: any, result: Tokens) => {
+  //       if (err) reject(new Error("Invalid refresh token"));
+  //       resolve(result);
+  //     }
+  //   );
+  // });
+
 };
 
 const authenticateSocket = async (
@@ -413,7 +421,9 @@ const updateDriverLocation = async (
   console.log("inRideDriverExists", inRideDriverExists);
 
   if (!isAlreadyOnline && !inRideDriverExists) {
-    const driverDetails = (driverController.getOnlineDriverDetails(driverId))as any;
+    const driverDetails = driverController.getOnlineDriverDetails(
+      driverId
+    ) as any;
     await redisClient.set(driverDetailsKey, JSON.stringify(driverDetails.data));
   }
 
@@ -626,7 +636,7 @@ const handleDriverRideRequests = async (
       console.log(
         `Ride ${driverRideRequest.ride.rideId} declined by driver ${driver.driverId}`
       );
-      await  driverController.updateDriverCancelCount(driver.driverId);
+      await driverController.updateDriverCancelCount(driver.driverId);
     }
   }
 
@@ -775,7 +785,7 @@ const sendRideRequest = (
         );
       } else {
         console.log(`Ride ${response.rideId} declined by driver ${driverId}`);
-        await  driverController.updateDriverCancelCount(driverId);
+        await driverController.updateDriverCancelCount(driverId);
       }
 
       resolve(response.accepted);
@@ -792,7 +802,7 @@ const sendRideRequest = (
         responseHandler
       );
       if (!stopSignal.stop) {
-        await  driverController.updateDriverCancelCount(driverId);
+        await driverController.updateDriverCancelCount(driverId);
       }
       resolve(false);
     }, timeoutDuration);
@@ -869,7 +879,7 @@ const handleRideAcceptance = async (
       `Booking status updated to Accepted for ride ${rideId}`,
       bookingResponse
     );
-
+      
     const targetSocketId = userSocketMap[userId];
     if (targetSocketId) {
       io.to(targetSocketId).emit("rideStatus", {
@@ -917,9 +927,9 @@ const removeDriverFromCache = async (driverId: string) => {
   }
 };
 
-  driverController.updateDriverCancelCount = async (driverId: string) => {
+driverController.updateDriverCancelCount = async (driverId: string) => {
   try {
-      await  driverController.updateDriverCancelCount(driverId)
+    await driverController.updateDriverCancelCount(driverId);
     console.log(`Cancellation count incremented for driver ${driverId}`);
   } catch (error) {
     console.error(

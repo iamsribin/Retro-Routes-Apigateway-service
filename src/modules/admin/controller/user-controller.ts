@@ -1,31 +1,25 @@
 import { Request, Response } from "express";
 import { UserService } from "../../user/config/user.client";
 import { UserInterface } from "../../../interfaces/interface";
-import { StatusCode } from "../../../interfaces/enum";
+import { StatusCode } from "../../../types/common/enum";
 
 export default class AdminController {
   getUsersList = (req: Request, res: Response) => {
     try {
       const { page = 1, limit = 10, search = "", status } = req.query;
-
-      // Optional: Convert page and limit to numbers
-      const pageNumber = parseInt(page as string, 10);
-      const limitNumber = parseInt(limit as string, 10);
       const searchTerm = search as string;
       UserService.AdminGetUsersList(
-        { page: pageNumber, limit: limitNumber, search: searchTerm, status },
+        { page, limit, search: searchTerm, status },
         (err: any, result: any) => {
           if (err) {
             res.status(StatusCode.BadRequest).json({ message: err });
           } else {
-            console.log("result result", result);
 
             const users = result.Users || [];
             const { Users, pagination } = result;
             console.log("9090",{ Users, pagination });
             
             res.status(StatusCode.Created).json({ users: Users || [], pagination });
-            // res.status(StatusCode.Created).json(users);
           }
         }
       );
