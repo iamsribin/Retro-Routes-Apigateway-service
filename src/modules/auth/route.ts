@@ -1,9 +1,10 @@
 import express,{Application} from 'express'
-import { refreshToken } from '../auth/controller'
+import { handleLogout, refreshToken } from '../auth/controller'
 
 const rideRoute:Application=express()
 
 
 rideRoute.post('/refresh',refreshToken)
+rideRoute.post('/logout',handleLogout)
 
 export default rideRoute

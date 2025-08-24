@@ -1,0 +1,68 @@
+syntax = "proto3";
+package ride_package;
+
+service Ride {
+    rpc fetchVehicles (Empty) returns (FetchVehiclesRes) {}
+  //-------booking rpc -------
+  rpc bookCab (BookCabReq) returns (commonRes);
+  //  rpc createBooking
+   // rpc updateBooking
+   // rpc updateAcceptedRide
+   // rpc fetchDriverBookingList
+   // rpc fetchDriverBookingDetails
+    //rpc cancelRide
+}
+
+message Location {
+  string address = 1;
+  double latitude = 2;
+  double longitude = 3;
+}
+
+message DistanceInfo {
+  string distance = 1;
+  double distanceInKm = 2;
+}
+
+message BookCabReq {
+  Location pickupLocation = 1;
+  Location dropOffLocation = 2;
+  string vehicleModel = 3;
+  string userName = 4;
+  double estimatedPrice = 5;
+  string estimatedDuration = 6;
+  DistanceInfo distanceInfo = 7;
+  string mobile = 8;
+  string profile = 9; 
+  string userId = 10;
+}
+
+message commonRes {
+  int32 status = 1;
+  string message = 2;
+  string navigate = 3; 
+  string data = 4; 
+}
+
+
+message Empty {}
+
+message Pricing {
+  string vehicleModel = 1;
+  string image = 2;
+  string minDistanceKm = 3;
+  double basePrice = 4;
+  double pricePerKm = 5;
+  string eta = 6;
+  repeated string features = 7;
+  string updatedBy = 8;
+  string updatedAt = 9; 
+}
+
+
+message FetchVehiclesRes {
+  int32 status = 1;
+  string message = 2;
+  string navigate = 3; 
+  repeated Pricing data = 4;
+}

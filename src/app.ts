@@ -12,7 +12,7 @@ import  { protectedDriverRoute, publicDriverRoute } from "./modules/driver/route
 import authRoute from "./modules/auth/route"
 import adminRoute from "./modules/admin/route"
 import { isValidated } from "./modules/auth/controller";
-import { setupSocketIO } from "./modules/socket/socket";
+// import { setupSocketIO } from "./modules/socket/socket";
 import {isEnvDefined} from "./utils/env-checker";
 import { logger, morganMiddleware } from "./middleware/centralized-logging";
 import { protectedPaymentRoute } from "./modules/payment/route";
@@ -29,7 +29,7 @@ class App {
     this.server = http.createServer(this.app);
     this.applyMiddleware();
     this.routes();
-    setupSocketIO(this.server);
+    // setupSocketIO(this.server);
     isEnvDefined();
   }
 
