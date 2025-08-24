@@ -48,38 +48,54 @@ export const isValidated = (requiredRole: string) =>
   });
 
 // Controller: refreshToken
-export const refreshToken = AsyncHandler(async (req: Request, res: Response) => {
-  try {
-    const token =
-      req.cookies?.refreshToken ||
-      req.headers.authorization?.split(" ")[1] ||
-      req.body.token;
+export const refreshToken = AsyncHandler(
+  async (req: Request, res: Response) => {
+    try {
+      const token =
+        req.cookies?.refreshToken ||
+        req.headers.authorization?.split(" ")[1] ||
+        req.body.token;
 
-    if (!token) {
-      res.status(StatusCode.Unauthorized).json({
-        success: false,
-        message: "Refresh token missing",
+      if (!token) {
+        res.status(StatusCode.Unauthorized).json({
+          success: false,
+          message: "Refresh token missing",
+        });
+        return;
+      }
+
+      const decoded = TokenService.verifyRefreshToken(token);
+
+      const { accessToken, refreshToken } = TokenService.generateTokens(
+        decoded.clientId,
+        decoded.role
+      );
+
+      res.status(StatusCode.Created).json({
+        success: true,
+        token: accessToken,
+        refreshToken,
+        message: "Token refreshed successfully",
       });
-      return;
+    } catch (err) {
+      res.status(StatusCode.NotAcceptable).json({
+        success: false,
+        message: "Invalid or expired refresh token",
+      });
     }
-
-    const decoded = TokenService.verifyRefreshToken(token);
-
-    const { accessToken, refreshToken } = TokenService.generateTokens(
-      decoded.clientId,
-      decoded.role
-    );
-
-    res.status(StatusCode.Created).json({
-      success: true,
-      token: accessToken,
-      refreshToken,
-      message: "Token refreshed successfully",
-    });
-  } catch (err) {
-    res.status(StatusCode.NotAcceptable).json({
-      success: false,
-      message: "Invalid or expired refresh token",
-    });
   }
-});
+);
+
+export const handleLogout = (req: Request, res: Response) => {
+  const cookieOptions: any = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 0,
+  };
+console.log("logptu");
+
+  res.cookie("access_token", "", cookieOptions);
+  res.cookie("refresh_token", "", cookieOptions);
+  res.status(204).json({});
+};

@@ -80,29 +80,29 @@ publicDriverRoute.post(
 /* ===================== PROTECTED DRIVER ROUTES ===================== */
 
 // ---------- GET ----------
-// protectedDriverRoute.get("/get-driver-profile", driverController.fetchDriverProfile);
-// protectedDriverRoute.get("/get-my-documents", driverController.fetchDriverDocuments);
-// // protectedDriverRoute.get("/getMyTrips", bookingController.fetchDriverBookingList);
-// // protectedDriverRoute.get("/getMyTripDetails/:id", bookingController.fetchDriverBookingDetails);
+protectedDriverRoute.get("/get-driver-profile", driverController.fetchDriverProfile);
+protectedDriverRoute.get("/get-my-documents", driverController.fetchDriverDocuments);
+protectedDriverRoute.get("/getMyTrips", bookingController.fetchDriverBookingList);
+protectedDriverRoute.get("/getMyTripDetails/:id", bookingController.fetchDriverBookingDetails);
 
 // // ---------- PUT ----------
-// protectedDriverRoute.put(
-//   "/update-driver-profile",
-//   upload.single("profilePhoto"),
-//   driverController.updateDriverProfile
-// );
+protectedDriverRoute.put(
+  "/update-driver-profile",
+  upload.single("profilePhoto"),
+  driverController.updateDriverProfile
+);
 
-// protectedDriverRoute.put(
-//   "/update-driver-documents",
-//   upload.any(),
-//   driverController.updateDriverDocuments
-// );
+protectedDriverRoute.put(
+  "/update-driver-documents",
+  upload.any(),
+  driverController.updateDriverDocuments
+);
 
 // // ---------- POST ----------
-// protectedDriverRoute.post(
-//   "/uploadChatFile",
-//   upload.fields([{ name: "file", maxCount: 1 }]),
-//   driverController.uploadChatFile
-// );
+protectedDriverRoute.post(
+  "/uploadChatFile",
+  upload.fields([{ name: "file", maxCount: 1 }]),
+  driverController.uploadChatFile
+);
  
 export { publicDriverRoute, protectedDriverRoute };

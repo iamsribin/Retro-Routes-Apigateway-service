@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import uploadToS3 from "../../../services/s3";
+import uploadToS3, { uploadToS3Public } from "../../../services/s3";
 import { DriverService } from "../../driver/config/driver.client";
 import { commonRes } from "../../../types/common/common-response";
 import {
@@ -70,6 +70,8 @@ class DriverAuthController {
       await DriverService.checkRegisterDriver(
         { mobile },
         (err: Error | null, response: CheckRegisterDriverRes) => {
+          console.log("response",response);
+          
           if (
             err ||
             (response.status !== StatusCode.OK &&
@@ -99,7 +101,9 @@ class DriverAuthController {
             });
             return;
           }
+          res.status(StatusCode.OK).json({status: StatusCode.OK});
         }
+
       );
     } catch (e) {
       console.error(e);
@@ -293,13 +297,14 @@ class DriverAuthController {
       let url = "sample";
 
       if (files) {
-        url = await uploadToS3(files);
+        url = await uploadToS3Public(files);
       }
 
       const request = {
         ...req.query,
         driverImageUrl: url,
       };
+      
       await DriverService.updateDriverImage(
         request,
         (err: Error | null, response: commonRes) => {
@@ -314,20 +319,7 @@ class DriverAuthController {
           res.status(+response.status).json(response);
         }
       );
-      // const response: Res_common = (await driverRabbitMqClient.produce(
-      //   request,
-      //   operation
-      // )) as Res_common;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
+     
     } catch (e: unknown) {
       console.log(e);
       res
@@ -363,26 +355,10 @@ class DriverAuthController {
         carBackImageUrl,
       };
 
-      const operation = "vehicle-image&RC-update";
-
-      // const response: Res_common = (await driverRabbitMqClient.produce(
-      //   data,
-      //   operation
-      // )) as Res_common;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
-
       await DriverService.vehicleUpdate(
         request,
         (err: Error | null, response: commonRes) => {
+          
           if (err || Number(response.status) !== StatusCode.OK) {
             return res.status(+response?.status || 500).json({
               message: response?.message || "Something went wrong",
@@ -415,7 +391,6 @@ class DriverAuthController {
         ]);
       }
 
-      const operation = "vehicle-insurance&pollution-update";
       const request = {
         ...req.query,
         ...req.body,
@@ -423,20 +398,6 @@ class DriverAuthController {
         insuranceImageUrl,
       };
 
-      // const response: Res_common = (await driverRabbitMqClient.produce(
-      //   data,
-      //   operation
-      // )) as Res_common;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
       await DriverService.vehicleInsurancePollutionUpdate(
         request,
         (err: Error | null, response: commonRes) => {
@@ -462,21 +423,6 @@ class DriverAuthController {
   location = async (req: Request, res: Response) => {
     try {
       const request = { ...req.body, ...req.query };
-
-      // const response = (await driverRabbitMqClient.produce(
-      //   data,
-      //   operation
-      // )) as Res_common;
-
-      // if (response.status === StatusCode.OK) {
-      //   res.status(response.status).json(response);
-      // } else {
-      //   res.status(+response.status).json({
-      //     message: response.message,
-      //     data: response,
-      //     navigate: response.navigate || "",
-      //   });
-      // }
 
       await DriverService.locationUpdate(
         request,

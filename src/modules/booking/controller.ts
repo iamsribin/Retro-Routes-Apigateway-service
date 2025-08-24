@@ -41,12 +41,8 @@ class BookingController {
     try {
       const data = req.body;
       const id = req.user?.id
-      data.userId = id
-      console.log("data",data);
-      
+      data.userId = id      
       RideService.bookCab(data, (err: Error | null, response: any) => {
-        console.log("reponse", response);
-
         if (err || Number(response.status) !== StatusCode.Created) {
           return res.status(+response?.status || 500).json({
             message: response?.message || "Something went wrong",

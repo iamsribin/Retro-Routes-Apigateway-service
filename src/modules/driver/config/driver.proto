@@ -196,68 +196,8 @@ message Location {
 
 message UpdateDriverDocumentsReq {
   string driverId = 1;
-  SectionType section = 2;
-
-  oneof updates {
-    AadharUpdates aadhar = 3;
-    LicenseUpdates license = 4;
-    VehicleRCUpdates vehicleRC = 5;
-    VehicleDetailsUpdates vehicleDetails = 6;
-    InsuranceUpdates insurance = 7;
-    PollutionUpdates pollution = 8;
-  }
-}
-
-// Enum for section type
-enum SectionType {
-  AADHAR = 0;
-  LICENSE = 1;
-  VEHICLERC = 2;
-  VEHICLEDETAILS = 3;
-  INSURANCE = 4;
-  POLLUTION = 5;
-}
-
-// === Update DTOs ===
-message AadharUpdates {
-  string id = 1;
-  string frontImageUrl = 2;
-  string backImageUrl = 3;
-}
-
-message LicenseUpdates {
-  string id = 1;
-  string frontImageUrl = 2;
-  string backImageUrl = 3;
-  string validity = 4;
-}
-
-message VehicleRCUpdates {
-  string registrationId = 1;
-  string rcFrontImageUrl = 2;
-  string rcBackImageUrl = 3;
-  string rcStartDate = 4;
-  string rcExpiryDate = 5;
-}
-
-message VehicleDetailsUpdates {
-  string vehicleNumber = 1;
-  string vehicleColor = 2;
-  string model = 3;
-  string carFrontImageUrl = 4;
-  string carBackImageUrl = 5;
-}
-
-message InsuranceUpdates {
-  string insuranceImageUrl = 1;
-  string insuranceStartDate = 2;
-  string insuranceExpiryDate = 3;
-}
-
-message PollutionUpdates {
-  string pollutionImageUrl = 1;
-  string pollutionStartDate = 2;
-  string pollutionExpiryDate = 3;
+  string section = 2;
+  string updates = 3;
 }
 
 message IResponse_DocumentsDTO {

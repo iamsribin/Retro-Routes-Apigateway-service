@@ -9,8 +9,8 @@ export async function recursivelySignImageUrls(obj: any): Promise<void> {
       value.trim() !== "" &&
       (
         key.toLowerCase().includes("image") || 
-        key.toLowerCase().endsWith("imageurl") ||
-        key.toLowerCase().endsWith("image")
+        key.toLowerCase().endsWith("imageUrl") ||
+        key.toLowerCase().endsWith("ImageUrl")
       )
     ) {
       obj[key] = await generateSignedUrl(value);
