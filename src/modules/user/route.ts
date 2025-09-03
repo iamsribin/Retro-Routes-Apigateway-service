@@ -10,7 +10,7 @@ publicUserRoute.post("/checkUser", userController.checkUser);
 publicUserRoute.post("/resendOtp", userController.resendOtp);
 publicUserRoute.post("/checkLoginUser", userController.checkLoginUser);
 publicUserRoute.post("/checkGoogleLoginUser", userController.checkGoogleLoginUser);
-publicUserRoute.get("/vehicles", bookingController.fetchVehicles);
+publicUserRoute.get("/vehicleModels", bookingController.fetchVehicles);
 // publicUserRoute.get("/profile/:id",userController.fetchUserProfile);
 
 // publicUserRoute.get("/bookings/:id",bookinguserController.fetchUserBookingList);

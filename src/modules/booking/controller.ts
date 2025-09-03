@@ -40,8 +40,8 @@ class BookingController {
   async bookCab(req: Request, res: Response) {
     try {
       const data = req.body;
-      const id = req.user?.id
-      data.userId = id      
+      const id = req.user?.id;
+      data.userId = id;
       RideService.bookCab(data, (err: Error | null, response: any) => {
         if (err || Number(response.status) !== StatusCode.Created) {
           return res.status(+response?.status || 500).json({
@@ -63,25 +63,21 @@ class BookingController {
 
   async fetchDriverBookingList(req: Request, res: Response) {
     try {
-      const operation = "get-driver-booking-list";
-      // const {id} = req.params
       const id = req.user?.id;
-      console.log("reach get-driver-booking-list", id);
 
-      // const data = (await bookingRabbitMqClient.produce(id, operation)) as any;
-      // console.log("booking-list data", data);
-
-      // if (data.status === "Failed") {
-      //   res.status(StatusCode.InternalServerError).json({
-      //     status: "Failed",
-      //     data: data?.data,
-      //   });
-      // } else {
-      //   res.status(StatusCode.Accepted).json({
-      //     status: "Success",
-      //     data: data?.data,
-      //   });
-      // }
+      RideService.fetchDriverBookingList(
+        { id },
+        (err: Error | null, response: any) => {
+          if (err || Number(response.status) !== StatusCode.OK) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });
+          }
+          res.status(+response.status).json(response.data || []);
+        }
+      );
     } catch (error) {
       console.log("fetchDriverBookingList error", error);
 
@@ -94,25 +90,57 @@ class BookingController {
 
   async fetchDriverBookingDetails(req: Request, res: Response) {
     try {
-      const operation = "get-driver-booking-details";
       const { id } = req.params;
       // const id = req.user?.id;
       console.log("reach get-driver-booking-details", id);
 
-      // const data = (await bookingRabbitMqClient.produce(id, operation)) as any;
-      // console.log("data====", data);
+      RideService.fetchDriverBookingDetails(
+        { id },
+        (err: Error | null, response: any) => {
+          console.log("response", response);
 
-      // if (data.status === "Failed") {
-      //   res.status(StatusCode.InternalServerError).json({
-      //     status: "Failed",
-      //     data: data?.data,
-      //   });
-      // } else {
-      //   res.status(StatusCode.Accepted).json({
-      //     status: "Success",
-      //     data: data?.data,
-      //   });
-      // }
+          if (err || Number(response.status) !== StatusCode.OK) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });
+          }
+          res.status(+response.status).json(response.data);
+        }
+      );
+    } catch (error) {
+      res.status(StatusCode.InternalServerError).json({
+        status: "Failed",
+        data: "Failed to register user",
+      });
+    }
+  }
+
+  async checkSecurityPin(req: Request, res: Response) {
+    try {
+      const { securityPin, bookingId } = req.body;
+      const payload = {
+        securityPin,
+        bookingId,
+      };
+      console.log("checkSecurityPin", payload);
+
+      RideService.checkSecurityPin(
+        payload,
+        (err: Error | null, response: any) => {
+          console.log("response", response);
+
+          if (err || Number(response.status) !== StatusCode.Accepted) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });
+          }
+          res.status(+response.status).json(response.data);
+        }
+      );
     } catch (error) {
       res.status(StatusCode.InternalServerError).json({
         status: "Failed",

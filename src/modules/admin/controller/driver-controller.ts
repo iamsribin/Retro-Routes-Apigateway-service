@@ -29,19 +29,19 @@ export default class DriverController {
               navigate: response?.navigate || "",
             });
           }
-          if (response.data?.drivers) {
-            const updatedDrivers = await Promise.all(
-              response.data.drivers.map(async (val) => {
-                const signedUrl = await generateSignedUrl(val.driverImage);
-                return {
-                  ...val,
-                  driverImage: signedUrl,
-                };
-              })
-            );
+          // if (response.data?.drivers) {
+          //   const updatedDrivers = await Promise.all(
+          //     response.data.drivers.map(async (val) => {
+          //       const signedUrl = await generateSignedUrl(val.driverImage);
+          //       return {
+          //         ...val,
+          //         driverImage: signedUrl,
+          //       };
+          //     })
+          //   );
 
-            response.data.drivers = updatedDrivers;
-          }
+          //   response.data.drivers = updatedDrivers;
+          // }
 
           res.status(+response.status).json(response.data);
         }
@@ -71,6 +71,8 @@ export default class DriverController {
               navigate: response?.navigate || "",
             });
           }
+          console.log("response.data",response.data);
+          
           if (response.data) {
             await recursivelySignImageUrls(response.data);
           }

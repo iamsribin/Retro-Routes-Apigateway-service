@@ -104,5 +104,7 @@ protectedDriverRoute.post(
   upload.fields([{ name: "file", maxCount: 1 }]),
   driverController.uploadChatFile
 );
+
+protectedDriverRoute.post("/check-security-pin",bookingController.checkSecurityPin)
  
 export { publicDriverRoute, protectedDriverRoute };

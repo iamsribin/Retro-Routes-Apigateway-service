@@ -7,10 +7,10 @@ export async function recursivelySignImageUrls(obj: any): Promise<void> {
     if (
       typeof value === "string" &&
       value.trim() !== "" &&
+      !key.toLowerCase().includes("driverimage") &&
       (
         key.toLowerCase().includes("image") || 
-        key.toLowerCase().endsWith("imageUrl") ||
-        key.toLowerCase().endsWith("ImageUrl")
+        key.toLowerCase().endsWith("imageurl")
       )
     ) {
       obj[key] = await generateSignedUrl(value);
