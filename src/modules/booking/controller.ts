@@ -64,9 +64,11 @@ class BookingController {
   async fetchDriverBookingList(req: Request, res: Response) {
     try {
       const id = req.user?.id;
+      const {role} = req.params
+console.log({id,role});
 
-      RideService.fetchDriverBookingList(
-        { id },
+      RideService.fetchDriverBookingList( 
+        { id, role },
         (err: Error | null, response: any) => {
           if (err || Number(response.status) !== StatusCode.OK) {
             return res.status(+response?.status || 500).json({
@@ -138,7 +140,7 @@ class BookingController {
               navigate: response?.navigate || "",
             });
           }
-          res.status(+response.status).json(response.data);
+          res.status(+response.status).json(response.message);
         }
       );
     } catch (error) {
@@ -149,14 +151,59 @@ class BookingController {
     }
   }
 
-  async cancelRide(userId: string, ride_id: string) {
-    const data = {
-      userId,
-      ride_id,
-    };
-    // const response = await bookingRabbitMqClient.produce(data, "cancel_ride");
+  async cancelRide(req: Request, res: Response) {
+    try {
+      const { userId, rideId } = req.body;
+      const payload = {
+        userId,
+        rideId,
+      };
 
-    // return response;
+      RideService.cancelRide(payload, (err: Error | null, response: any) => {
+        console.log("response", response);
+
+        if (err || Number(response.status) !== StatusCode.Accepted) {
+          return res.status(+response?.status || 500).json({
+            message: response?.message || "Something went wrong",
+            data: response,
+            navigate: response?.navigate || "",
+          });
+        }
+        res.status(+response.status).json(response.message);
+      });
+    } catch (error) {
+      res.status(StatusCode.InternalServerError).json({
+        status: "Failed",
+        data: "Failed to cancel ride",
+      });
+    }
+  }
+
+  async rideCompleted(req: Request, res: Response) {
+    try {
+      const { bookingId, userId } = req.body;
+      const payload = {
+        bookingId,
+        userId,
+      };
+      RideService.completeRide(payload, (err: Error | null, response: any) => {
+        console.log("response", response);
+
+        if (err || Number(response.status) !== StatusCode.Accepted) {
+          return res.status(+response?.status || 500).json({
+            message: response?.message || "Something went wrong",
+            data: response,
+            navigate: response?.navigate || "",
+          });
+        }
+        res.status(+response.status).json(response.message);
+      });
+    } catch (error) {
+      res.status(StatusCode.InternalServerError).json({
+        status: "Failed",
+        data: "Failed to complete ride",
+      });
+    }
   }
 }
 

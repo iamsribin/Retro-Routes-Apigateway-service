@@ -82,7 +82,7 @@ publicDriverRoute.post(
 // ---------- GET ----------
 protectedDriverRoute.get("/get-driver-profile", driverController.fetchDriverProfile);
 protectedDriverRoute.get("/get-my-documents", driverController.fetchDriverDocuments);
-protectedDriverRoute.get("/getMyTrips", bookingController.fetchDriverBookingList);
+protectedDriverRoute.get("/getMyTrips/:role", bookingController.fetchDriverBookingList);
 protectedDriverRoute.get("/getMyTripDetails/:id", bookingController.fetchDriverBookingDetails);
 
 // // ---------- PUT ----------
@@ -106,5 +106,6 @@ protectedDriverRoute.post(
 );
 
 protectedDriverRoute.post("/check-security-pin",bookingController.checkSecurityPin)
+protectedDriverRoute.patch("/ride-completed",bookingController.rideCompleted)
  
 export { publicDriverRoute, protectedDriverRoute };

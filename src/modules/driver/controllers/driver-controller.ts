@@ -190,8 +190,10 @@ class DriverController {
       const files: any = req.files;
       let Url = "";
       if (files) {
-        [Url] = await Promise.all([uploadToS3(files["file"][0])]);
+        [Url] = await Promise.all([uploadToS3Public(files["file"][0])]);
       }
+      console.log("uploadChatFile url", Url);
+
       res
         .status(StatusCode.Accepted)
         .json({ message: "success", fileUrl: Url });

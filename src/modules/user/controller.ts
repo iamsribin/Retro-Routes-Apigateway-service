@@ -2,7 +2,10 @@ import { Request, Response } from "express";
 import { UserService } from "./config/user.client";
 import { StatusCode } from "../../types/common/enum";
 import { Message, AuthResponse } from "../../interfaces/interface";
-import uploadToS3 from "../../services/s3";
+import { uploadToS3Public } from "../../services/s3";
+import { commonRes } from "../../types/common/common-response";
+import { IResponse } from "../driver/interface";
+import { UserProfileDto } from "./types";
 
 class UserController {
   /**
@@ -42,7 +45,7 @@ class UserController {
   async checkUser(req: Request, res: Response): Promise<void> {
     try {
       console.log("=--=-");
-      
+
       await UserService.CheckUser(
         req.body,
         (err: Error | null, result: { token: string; message: string }) => {
@@ -73,7 +76,7 @@ class UserController {
   async checkLoginUser(req: Request, res: Response): Promise<void> {
     try {
       console.log("checkLoginUser", req.body);
-      
+
       await UserService.CheckLoginUser(
         req.body,
         (err: Error | null, result: AuthResponse) => {
@@ -97,6 +100,7 @@ class UserController {
    */
   async resendOtp(req: Request, res: Response): Promise<void> {
     try {
+      
       await UserService.ResendOtp(
         req.body,
         (err: Error | null, result: { token: string; message: string }) => {
@@ -143,14 +147,38 @@ class UserController {
     }
   }
 
+  fetchUserProfile = async (req: Request, res: Response) => {
+    try {
+      const id = req.user?.id;
+
+      await UserService.fetchUserProfile(
+        { id },
+        (err: Error | null, result: IResponse<UserProfileDto>) => {
+          console.log("result",result);
+          
+          if (err) { 
+            res.status(+result.status).json({ message: err.message });
+            return; 
+          }  
+          res.status(+result.status).json(result.data);
+        }
+      );
+    } catch (error) {
+      console.log(error);
+      res.status(StatusCode.InternalServerError).json({
+        message: "Failed to fetch user profile",
+      });
+    }
+  };
+
   uploadChatFile = async (req: Request, res: Response) => {
     try {
       const files: any = req.files;
       let Url = "";
       if (files) {
-        [Url] = await Promise.all([uploadToS3(files["file"][0])]);
+        [Url] = await Promise.all([uploadToS3Public(files["file"][0])]);
       }
-      console.log("insurance", Url);
+      console.log("uploadChatFile url", Url);
 
       res
         .status(StatusCode.Accepted)
@@ -164,3 +192,4 @@ class UserController {
 }
 
 export const userController = new UserController();
+ 
