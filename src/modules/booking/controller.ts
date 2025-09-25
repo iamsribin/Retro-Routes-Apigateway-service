@@ -187,7 +187,7 @@ console.log({id,role});
         userId,
       };
       RideService.completeRide(payload, (err: Error | null, response: any) => {
-        console.log("response", response);
+        console.log("completeRide response", response);
 
         if (err || Number(response.status) !== StatusCode.Accepted) {
           return res.status(+response?.status || 500).json({

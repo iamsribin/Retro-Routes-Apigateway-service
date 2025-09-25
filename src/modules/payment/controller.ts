@@ -55,7 +55,7 @@ export default class PaymentController {
     }
   }
 
-  async processCashPayment(req: Request, res: Response): Promise<void> {
+  async conformCashPayment(req: Request, res: Response): Promise<void> {
     try {
       const { bookingId, userId, driverId, amount,idempotencyKey=123 } = req.body;
      console.log("bookingId, userId, driverId, amount",bookingId, userId, driverId, amount);
@@ -67,7 +67,7 @@ export default class PaymentController {
       }
 
       // Call payment service via gRPC
-      await PaymentService.ProcessCashPayment(
+      await PaymentService.ConformCashPayment(
         { bookingId, userId, driverId, amount,idempotencyKey },
         (err: Error | null, result: { transactionId: string; message: string }) => {
           if (err) {

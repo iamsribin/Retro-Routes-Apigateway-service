@@ -4,7 +4,7 @@ package payment_package;
 service Payment {
   rpc CreateCheckoutSession(CheckoutSessionRequest) returns (CheckoutSessionResponse) {}
   rpc ProcessWalletPayment(WalletPaymentRequest) returns (WalletPaymentResponse) {}
-  rpc ProcessCashPayment(CashPaymentRequest) returns (CashPaymentResponse) {}
+  rpc ConformCashPayment(CashPaymentRequest) returns (CashPaymentResponse) {}
   rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {}
   rpc HandleWebhook(WebhookRequest) returns (WebhookResponse) {}
 }
