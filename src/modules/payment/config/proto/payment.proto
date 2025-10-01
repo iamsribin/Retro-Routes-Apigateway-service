@@ -4,7 +4,7 @@ package payment_package;
 service Payment {
   rpc CreateCheckoutSession(CheckoutSessionRequest) returns (CheckoutSessionResponse) {}
   rpc ProcessWalletPayment(WalletPaymentRequest) returns (WalletPaymentResponse) {}
-  rpc ConformCashPayment(CashPaymentRequest) returns (CashPaymentResponse) {}
+  rpc ConformCashPayment(CashPaymentRequest) returns (IResponse) {}
   rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse) {}
   rpc HandleWebhook(WebhookRequest) returns (WebhookResponse) {}
 }
@@ -43,9 +43,11 @@ message CashPaymentRequest {
   string idempotencyKey = 5;
 }
 
-message CashPaymentResponse {
-  string transactionId = 1;
+message IResponse {
+  string status = 1;
   string message = 2;
+  string navigate= 3;
+  string data = 4;
 }
 
 message GetTransactionRequest {

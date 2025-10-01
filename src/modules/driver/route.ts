@@ -3,8 +3,9 @@ import upload from "../../middleware/multer";
 import { authController } from "./controllers/auth-controller";
 import {bookingController} from "../booking/controller";
 import { driverController } from "./controllers/driver-controller";
+import PaymentController from "../payment/controller";
 
-
+const paymentController = new PaymentController()
 const publicDriverRoute = express.Router();
 const protectedDriverRoute = express.Router();
 
@@ -106,6 +107,8 @@ protectedDriverRoute.post(
 );
 
 protectedDriverRoute.post("/check-security-pin",bookingController.checkSecurityPin)
-protectedDriverRoute.patch("/ride-completed",bookingController.rideCompleted)
+protectedDriverRoute.patch("/ride-completed",bookingController.rideCompleted);
+protectedDriverRoute.post("/driver-payment-conformation",paymentController.verifyDriverConformation);
+
  
 export { publicDriverRoute, protectedDriverRoute };

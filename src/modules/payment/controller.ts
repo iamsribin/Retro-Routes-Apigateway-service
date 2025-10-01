@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
-import { StatusCode } from '../../types/common/enum';
-import { PaymentService } from './config/grpc-client/payment.client';
+import { Request, Response } from "express";
+import { StatusCode } from "../../types/common/enum";
+import { PaymentService } from "./config/grpc-client/payment.client";
+import { IResponse } from "../driver/interface";
 
 export default class PaymentController {
   async createCheckoutSession(req: Request, res: Response): Promise<void> {
@@ -9,7 +10,9 @@ export default class PaymentController {
 
       // Validate input
       if (!bookingId || !userId || !driverId || !amount) {
-        res.status(StatusCode.BadRequest).json({ message: 'Missing required fields' });
+        res
+          .status(StatusCode.BadRequest)
+          .json({ message: "Missing required fields" });
         return;
       }
 
@@ -25,7 +28,9 @@ export default class PaymentController {
         }
       );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ message: 'Failed to create checkout session' });
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Failed to create checkout session" });
     }
   }
 
@@ -35,14 +40,19 @@ export default class PaymentController {
 
       // Validate input
       if (!bookingId || !userId || !driverId || !amount) {
-        res.status(StatusCode.BadRequest).json({ message: 'Missing required fields' });
+        res
+          .status(StatusCode.BadRequest)
+          .json({ message: "Missing required fields" });
         return;
       }
 
       // Call payment service via gRPC
       await PaymentService.ProcessWalletPayment(
         { bookingId, userId, driverId, amount },
-        (err: Error | null, result: { transactionId: string; message: string }) => {
+        (
+          err: Error | null,
+          result: { transactionId: string; message: string }
+        ) => {
           if (err) {
             res.status(StatusCode.BadRequest).json({ message: err.message });
             return;
@@ -51,34 +61,107 @@ export default class PaymentController {
         }
       );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ message: 'Failed to process wallet payment' });
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Failed to process wallet payment" });
     }
   }
 
   async conformCashPayment(req: Request, res: Response): Promise<void> {
     try {
-      const { bookingId, userId, driverId, amount,idempotencyKey=123 } = req.body;
-     console.log("bookingId, userId, driverId, amount",bookingId, userId, driverId, amount);
+      const {
+        bookingId,
+        userId,
+        driverId,
+        amount,
+        idempotencyKey = 123,
+      } = req.body;
+
+      console.log(
+        "bookingId, userId, driverId, amount",
+        bookingId,
+        userId,
+        driverId,
+        amount
+      );
 
       // Validate input
       if (!bookingId || !userId || !driverId || !amount) {
-        res.status(StatusCode.BadRequest).json({ message: 'Missing required fields' });
+        res
+          .status(StatusCode.BadRequest)
+          .json({ message: "Missing required fields" });
         return;
       }
 
       // Call payment service via gRPC
       await PaymentService.ConformCashPayment(
-        { bookingId, userId, driverId, amount,idempotencyKey },
-        (err: Error | null, result: { transactionId: string; message: string }) => {
-          if (err) {
-            res.status(StatusCode.BadRequest).json({ message: err.message });
-            return;
+        { bookingId, userId, driverId, amount, idempotencyKey },
+        (err: Error | null, response: IResponse<null>) => {
+          if (err || Number(response.status) !== StatusCode.OK) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });  
           }
-          res.status(StatusCode.Created).json(result);
+
+          res.status(+response.status).json(response.data);
         }
       );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ message: 'Failed to process cash payment' });
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Failed to process cash payment" });
+    }
+  }
+
+  async verifyDriverConformation(req: Request, res: Response): Promise<void> {
+    try {
+      const {
+        bookingId,
+        userId,
+        driverId,
+        amount,
+        idempotencyKey = 123,
+        conformation,
+      } = req.body;
+
+      console.log(
+        "verifyDriverConformation",
+        bookingId,
+        userId,
+        driverId,
+        amount,
+        conformation
+      );
+
+      // Validate input
+      if (!bookingId || !userId || !driverId || !amount || !conformation) {
+        res
+          .status(StatusCode.BadRequest)
+          .json({ message: "Missing required fields" });
+        return;
+      }
+
+      // Call payment service via gRPC
+      // await PaymentService.verifyDriverConformation(
+      //   { bookingId, userId, driverId, amount, idempotencyKey, conformation },
+      //   (err: Error | null, response: IResponse<null>) => {
+      //     if (err || Number(response.status) !== StatusCode.OK) {
+      //       return res.status(+response?.status || 500).json({
+      //         message: response?.message || "Something went wrong",
+      //         data: response,
+      //         navigate: response?.navigate || "",
+      //       });
+      //     }
+
+      //     res.status(+response.status).json(response.data);
+      //   }
+      // );
+    } catch (error) {
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Failed to process cash payment" });
     }
   }
 
@@ -98,7 +181,9 @@ export default class PaymentController {
         }
       );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ message: 'Failed to fetch transaction' });
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Failed to fetch transaction" });
     }
   }
 
@@ -119,7 +204,9 @@ export default class PaymentController {
         }
       );
     } catch (error) {
-      res.status(StatusCode.InternalServerError).json({ message: 'Failed to process webhook' });
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Failed to process webhook" });
     }
   }
 }
