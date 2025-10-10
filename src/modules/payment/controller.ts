@@ -4,6 +4,7 @@ import { PaymentService } from "./config/grpc-client/payment.client";
 import { IResponse } from "../driver/interface";
 
 export default class PaymentController {
+  
   async createCheckoutSession(req: Request, res: Response): Promise<void> {
     try {
       const { bookingId, userId, driverId, amount } = req.body;
@@ -143,21 +144,20 @@ export default class PaymentController {
         return;
       }
 
-      // Call payment service via gRPC
-      // await PaymentService.verifyDriverConformation(
-      //   { bookingId, userId, driverId, amount, idempotencyKey, conformation },
-      //   (err: Error | null, response: IResponse<null>) => {
-      //     if (err || Number(response.status) !== StatusCode.OK) {
-      //       return res.status(+response?.status || 500).json({
-      //         message: response?.message || "Something went wrong",
-      //         data: response,
-      //         navigate: response?.navigate || "",
-      //       });
-      //     }
+      await PaymentService.ConformCashPayment(
+        { bookingId, userId, driverId, amount, idempotencyKey, conformation },
+        (err: Error | null, response: IResponse<null>) => {
+          if (err || Number(response.status) !== StatusCode.OK) {
+            return res.status(+response?.status || 500).json({
+              message: response?.message || "Something went wrong",
+              data: response,
+              navigate: response?.navigate || "",
+            });
+          }
 
-      //     res.status(+response.status).json(response.data);
-      //   }
-      // );
+          res.status(+response.status).json(response.data);
+        }
+      );
     } catch (error) {
       res
         .status(StatusCode.InternalServerError)
